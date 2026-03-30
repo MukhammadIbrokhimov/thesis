@@ -38,7 +38,7 @@ data/raw/*
 data/processed/*
 *.csv
 *.xlsx
-*.json
+data/**/*.json
 
 # Keep directory structure
 !data/raw/.gitkeep
@@ -53,8 +53,8 @@ data/processed/*
 *.pt
 *.pth
 
-# Results and figures (optional - may want to commit these)
-results/*.json
+# Results and figures - commit these for reproducibility
+!results/*.json
 figures/*.pdf
 figures/*.png
 

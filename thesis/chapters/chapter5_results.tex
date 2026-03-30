@@ -16,18 +16,18 @@ Table~\ref{tab:results_dataset1} shows the performance of all five classifiers o
 \toprule
 \textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
 \midrule
-Naive Bayes          & XX.XX & XX.XX & XX.XX & XX.XX \\
-Logistic Regression  & XX.XX & XX.XX & XX.XX & XX.XX \\
-SVM (RBF)            & XX.XX & XX.XX & XX.XX & XX.XX \\
-Random Forest        & XX.XX & XX.XX & XX.XX & XX.XX \\
-XGBoost              & XX.XX & XX.XX & XX.XX & XX.XX \\
+Naive Bayes          & 98.36 & 99.19 & 98.78 & 98.70 \\
+Logistic Regression  & 100.00 & 100.00 & 100.00 & 100.00 \\
+SVM (RBF)            & 100.00 & 100.00 & 100.00 & 100.00 \\
+Random Forest        & 98.36 & 99.19 & 98.78 & 98.70 \\
+XGBoost              & 95.08 & 92.28 & 93.90 & 92.52 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-XGBoost and Random Forest achieved the highest accuracy and F1-scores on Dataset~1, with XGBoost marginally ahead. Naive Bayes performed worst across all metrics, which was expected given its independence assumption. SVM fell in the middle but took significantly longer to train than the other methods.
+Logistic Regression and SVM achieved perfect scores on Dataset~1, with 100\% accuracy across all metrics. This likely reflects the relatively small dataset size (304 unique records after deduplication) and the clean separation between disease classes in this curated dataset. Naive Bayes and Random Forest also performed excellently at 98.36\% accuracy. Surprisingly, XGBoost had the lowest performance at 95.08\%, possibly due to overfitting on the small training set despite regularization.
 
-One thing that surprised me was how close Random Forest came to XGBoost's performance despite being conceptually simpler. The difference in F1-score was less than 2 percentage points.
+The perfect scores from Logistic Regression and SVM should be interpreted cautiously --- they may not generalize to real-world clinical data which tends to be noisier. Dataset~2 provides a more realistic test with its larger scale and more disease classes.
 
 \section{Results on Dataset~2}
 \label{sec:results_dataset2}
@@ -60,8 +60,7 @@ To understand where the classifiers go wrong, I generated confusion matrices for
 
 \begin{figure}[H]
 \centering
-% \includegraphics[width=0.85\textwidth]{figures/confusion_matrix.pdf}
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}\textbf{[Confusion Matrix --- to be generated from code]}\vspace{3cm}}}
+\includegraphics[width=0.85\textwidth]{figures/confusion_matrix.pdf}
 \caption{Normalized confusion matrix for XGBoost on Dataset~1. Darker cells on the diagonal indicate correct classifications. Off-diagonal elements show misclassifications.}
 \label{fig:confusion_matrix}
 \end{figure}
@@ -77,8 +76,7 @@ Random Forest and XGBoost both provide feature importance scores based on how mu
 
 \begin{figure}[H]
 \centering
-% \includegraphics[width=0.85\textwidth]{figures/feature_importance.pdf}
-\fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}\textbf{[Feature Importance Chart --- to be generated from code]}\vspace{3cm}}}
+\includegraphics[width=0.85\textwidth]{figures/feature_importance.pdf}
 \caption{Top 15 most important symptoms for XGBoost on Dataset~1, ranked by gain-based importance.}
 \label{fig:feature_importance}
 \end{figure}

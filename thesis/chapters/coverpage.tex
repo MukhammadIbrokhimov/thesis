@@ -1,27 +1,61 @@
 \begin{titlepage}
+    % Top colored bar with UE logo
+    \noindent
+    \begin{minipage}{\textwidth}
+        \colorbox{UERed}{%
+            \begin{minipage}{\dimexpr\textwidth-2\fboxsep}
+                \vspace{0.5cm}
+                \centering
+                {\color{white}\fontsize{40}{48}\selectfont\textbf{UE}}
+                \vspace{0.3cm}
+            \end{minipage}%
+        }
+    \end{minipage}
+
+    \vspace{1.5cm}
+
     \centering
-    \vspace*{1cm}
 
-    {\large University of Europe for Applied Sciences}\\[0.5cm]
-    {\large Faculty of Software Engineering}\\[2cm]
+    % University name and faculty
+    {\large\color{UEDoveBlue}\textbf{University of Europe for Applied Sciences}}\\[0.3cm]
+    {\large\color{UEGrey}Faculty of Software Engineering}\\[0.5cm]
 
-    {\LARGE\bfseries Comparing Machine Learning Methods for Predicting Diseases from Symptoms in Healthcare}\\[2cm]
+    % Decorative line
+    {\color{UERed}\rule{0.7\textwidth}{2pt}}\\[1.5cm]
 
-    {\large Bachelor Thesis}\\[0.5cm]
-    {\large submitted in partial fulfillment of the requirements for the degree of}\\[0.5cm]
-    {\large\bfseries Bachelor of Science (B.Sc.)}\\[0.5cm]
-    {\large in Software Engineering}\\[2cm]
+    % Thesis title
+    {\LARGE\bfseries Comparing Machine Learning Methods for\\ Predicting Diseases from Symptoms in Healthcare}\\[1.5cm]
 
-    \begin{tabular}{ll}
-        \textbf{Author:}           & Mukhammad Ibrokhimov \\
-        \textbf{Matriculation No:} & [Your Matriculation Number] \\
-        \textbf{First Supervisor:} & [Prof. Dr. First Supervisor] \\
-        \textbf{Second Supervisor:}& [Second Supervisor] \\
-        \textbf{Date of Submission:}& \today \\
-    \end{tabular}
+    % Decorative line
+    {\color{UERed}\rule{0.5\textwidth}{1pt}}\\[1cm]
+
+    % Degree information
+    {\large Bachelor Thesis}\\[0.4cm]
+    {\normalsize submitted in partial fulfillment of the requirements for the degree of}\\[0.4cm]
+    {\large\bfseries Bachelor of Science (B.Sc.)}\\[0.3cm]
+    {\normalsize in Software Engineering}\\[1.5cm]
+
+    % Author and supervisor information
+    \begin{flushleft}
+        \hspace{3cm}
+        \begin{tabular}{@{}ll}
+            \textbf{Author:}             & Mukhammad Ibrokhimov \\[0.3cm]
+            \textbf{Matriculation No:}   & [Your Matriculation Number] \\[0.3cm]
+            \textbf{First Supervisor:}   & [Prof. Dr. First Supervisor] \\[0.3cm]
+            \textbf{Second Supervisor:}  & [Second Supervisor] \\[0.3cm]
+            \textbf{Date of Submission:} & \today \\
+        \end{tabular}
+    \end{flushleft}
 
     \vfill
 
-    Berlin, \today
+    % Bottom section with location
+    {\large Berlin, \today}
+
+    \vspace{0.5cm}
+
+    % Bottom accent line
+    \noindent
+    {\color{UERed}\rule{\textwidth}{3pt}}
 
 \end{titlepage}
