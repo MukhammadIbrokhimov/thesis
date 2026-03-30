@@ -5,18 +5,18 @@ This chapter presents the results of the five classifiers on both datasets. All 
 
 % NOTE: Replace all placeholder values (XX.XX) with actual results from code output before submission.
 
-\section{Results on Dataset 1}
+\section{Results on Dataset~1}
 \label{sec:results_dataset1}
 
 Table~\ref{tab:results_dataset1} presents the performance of all five classifiers on the Disease Symptom Prediction Dataset (approximately 5,000 records, 132 symptoms, 41 disease classes).
 
 \begin{table}[H]
 \centering
-\caption{Classification results on Dataset 1 (macro-averaged, \%)}
+\caption{Classification results on Dataset~1 (macro-averaged, \%)}
 \label{tab:results_dataset1}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
 \midrule
 Naive Bayes          & XX.XX & XX.XX & XX.XX & XX.XX \\
 Logistic Regression  & XX.XX & XX.XX & XX.XX & XX.XX \\
@@ -39,18 +39,18 @@ Logistic Regression performed moderately well, demonstrating that linear decisio
 
 The relatively small size of Dataset~1 limits the advantage of more complex models, as the risk of overfitting increases with model capacity. This is reflected in the modest performance gap between the ensemble methods and the simpler classifiers.
 
-\section{Results on Synthetic Dataset}
+\section{Results on Dataset~2}
 \label{sec:results_dataset2}
 
 Table~\ref{tab:results_dataset2} presents the results on the larger Diseases and Symptoms Dataset (approximately 246,000 records).
 
 \begin{table}[H]
 \centering
-\caption{Classification results on Dataset 2 (macro-averaged, \%)}
+\caption{Classification results on Dataset~2 (macro-averaged, \%)}
 \label{tab:results_dataset2}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
 \midrule
 Naive Bayes          & XX.XX & XX.XX & XX.XX & XX.XX \\
 Logistic Regression  & XX.XX & XX.XX & XX.XX & XX.XX \\
@@ -67,7 +67,7 @@ On the larger Dataset~2, all classifiers showed improved performance compared to
 
 The performance gap between ensemble and non-ensemble methods was more pronounced on Dataset~2, suggesting that the additional data allows complex models to learn richer feature interactions without overfitting. SVM with the RBF kernel also benefited substantially from the larger dataset, as kernel methods can leverage more support vectors to define more precise decision boundaries.
 
-Notably, Naive Bayes showed the smallest improvement with increased data, which is expected given that its fixed independence assumption limits its capacity to exploit additional training examples. This finding has practical implications: in data-rich scenarios, the computational cost of training Naive Bayes is not justified by its performance.
+Naive Bayes showed the smallest improvement with increased data, which is expected given that its fixed independence assumption limits its capacity to exploit additional training examples. This finding has practical implications: in data-rich scenarios, the computational cost of training Naive Bayes is not justified by its performance.
 
 \section{Error Analysis}
 \label{sec:error_analysis}
@@ -79,7 +79,7 @@ To understand the nature of classification errors, confusion matrices were gener
 % TODO: Replace with actual confusion matrix figure
 % \includegraphics[width=0.85\textwidth]{figures/confusion_matrix.pdf}
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}\textbf{[Confusion Matrix Placeholder]}\\\textit{Generate from code and export as PDF}\vspace{3cm}}}
-\caption{Normalized confusion matrix for XGBoost on Dataset 1. Darker cells indicate higher classification rates. Off-diagonal elements represent misclassifications.}
+\caption{Normalized confusion matrix for XGBoost on Dataset~1. Darker cells indicate higher classification rates. Off-diagonal elements represent misclassifications.}
 \label{fig:confusion_matrix}
 \end{figure}
 
@@ -103,7 +103,7 @@ Random Forest and XGBoost provide built-in feature importance measures based on 
 % TODO: Replace with actual feature importance chart
 % \includegraphics[width=0.85\textwidth]{figures/feature_importance.pdf}
 \fbox{\parbox{0.8\textwidth}{\centering\vspace{3cm}\textbf{[Feature Importance Chart Placeholder]}\\\textit{Generate from code and export as PDF}\vspace{3cm}}}
-\caption{Top 15 most important features (symptoms) for XGBoost on Dataset 1, ranked by gain-based importance.}
+\caption{Top 15 most important features (symptoms) for XGBoost on Dataset~1, ranked by gain-based importance.}
 \label{fig:feature_importance}
 \end{figure}
 

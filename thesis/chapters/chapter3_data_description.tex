@@ -3,7 +3,7 @@
 
 This chapter describes the two publicly available datasets used in this thesis, their characteristics, and the preprocessing steps applied to prepare them for classification. Both datasets are sourced from Kaggle and represent symptom-based disease prediction tasks at different scales.
 
-\section{Dataset 1: Disease Symptom Prediction Dataset}
+\section{Dataset~1: Disease Symptom Prediction Dataset}
 \label{sec:dataset1}
 
 The first dataset, the Disease Symptom Prediction Dataset \citep{Kaggle_Disease2020}, contains approximately 5,000 patient records. Each record maps a combination of symptoms to one of 41 disease categories. The dataset includes 132 unique symptoms represented as columns, where the presence of a symptom is indicated by a value of 1 and the absence by 0.
@@ -12,7 +12,7 @@ Table~\ref{tab:dataset1_overview} summarizes the key characteristics of this dat
 
 \begin{table}[H]
 \centering
-\caption{Overview of Dataset 1: Disease Symptom Prediction Dataset}
+\caption{Overview of Dataset~1: Disease Symptom Prediction Dataset}
 \label{tab:dataset1_overview}
 \begin{tabular}{@{}ll@{}}
 \toprule
@@ -33,7 +33,7 @@ The dataset was originally compiled from multiple medical sources and provides s
 
 The class distribution in Dataset~1 is moderately imbalanced. While most disease categories contain between 100 and 150 records, some rare diseases have fewer than 50 examples. This imbalance is addressed through the class-weighting and resampling techniques described in Section~\ref{sec:class_imbalance}.
 
-\section{Dataset 2: Diseases and Symptoms Dataset}
+\section{Dataset~2: Diseases and Symptoms Dataset}
 \label{sec:dataset2}
 
 The second dataset, the Diseases and Symptoms Dataset \citep{Kaggle_Diseases2023}, is substantially larger, containing approximately 246,000 patient records. This dataset was designed to provide a more comprehensive symptom-disease mapping and covers a broader range of conditions.
@@ -42,7 +42,7 @@ Table~\ref{tab:dataset2_overview} summarizes its key characteristics.
 
 \begin{table}[H]
 \centering
-\caption{Overview of Dataset 2: Diseases and Symptoms Dataset}
+\caption{Overview of Dataset~2: Diseases and Symptoms Dataset}
 \label{tab:dataset2_overview}
 \begin{tabular}{@{}ll@{}}
 \toprule
@@ -87,4 +87,4 @@ A consistent preprocessing pipeline was applied to both datasets to ensure fair 
 
 \textbf{Step 7: Cross-Validation Setup.} Stratified 5-fold cross-validation was used for hyperparameter tuning and model evaluation. The stratified split ensures that each fold maintains the same class proportions as the full dataset, which is critical for imbalanced datasets.
 
-The complete preprocessing pipeline, including software versions and hyperparameter search spaces, is documented in Appendix~\ref{app:supplementary}.
+The complete preprocessing pipeline, including software versions (Table~\ref{tab:software}) and hyperparameter search spaces (Table~\ref{tab:hyperparameters}), is documented in Appendix~\ref{app:supplementary}.
