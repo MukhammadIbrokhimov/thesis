@@ -3,16 +3,47 @@
 
 \section{Summary of Findings}
 \label{sec:summary}
-% TODO: 300 words
+
+This thesis compared five machine learning classifiers --- Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, and XGBoost --- for symptom-based disease prediction using two publicly available Kaggle datasets of different scales.
+
+The experimental results lead to three main findings. First, ensemble methods (Random Forest and XGBoost) consistently outperformed traditional classifiers across all evaluation metrics (accuracy, precision, recall, and F1-score) on both datasets. XGBoost achieved the highest overall performance, benefiting from its sequential error-correction mechanism and built-in regularization.
+
+Second, all classifiers improved with increased data volume (from Dataset~1 to Dataset~2), but the improvement was most pronounced for complex models. Naive Bayes showed the smallest gain, confirming that additional data cannot compensate for the limitations of its independence assumption when applied to medical symptom data with inherent feature dependencies.
+
+Third, the error analysis revealed that misclassifications predominantly occur between diseases with overlapping symptom profiles, and that rare diseases with fewer training examples are more difficult to predict despite class weighting. These findings highlight the importance of both data quantity and quality for medical classification systems.
 
 \section{Contributions}
 \label{sec:contributions}
-% TODO: 200 words
+
+This thesis makes the following contributions to the field of machine learning for healthcare:
+
+\begin{enumerate}
+    \item A systematic, controlled comparison of five classifiers on the same symptom-based datasets using identical preprocessing, evaluation protocols, and hyperparameter tuning procedures. This addresses a gap in the literature where most studies evaluate a limited set of classifiers under varying conditions.
+    \item An evaluation across two datasets of substantially different sizes, providing insights into how classifier performance scales with data availability --- a practical consideration that is rarely addressed in existing studies.
+    \item A discussion of the practical, ethical, and regulatory considerations for deploying symptom-based prediction models in healthcare booking contexts, including compliance with the EU AI Act and GDPR.
+\end{enumerate}
 
 \section{Recommendations}
 \label{sec:recommendations}
-% TODO: 150-200 words
+
+Based on the findings of this thesis, the following recommendations are offered for practitioners and researchers:
+
+\begin{itemize}
+    \item For symptom-based disease prediction with sufficient training data, XGBoost or Random Forest should be preferred over simpler classifiers due to their consistently superior performance.
+    \item Logistic Regression should be maintained as an interpretable baseline for clinical validation, particularly in settings where model transparency is a regulatory or operational requirement.
+    \item Class imbalance should be addressed through class weighting rather than synthetic oversampling (SMOTE) when working with binary symptom features.
+    \item Any practical deployment should incorporate confidence thresholds, human oversight, and continuous performance monitoring.
+\end{itemize}
 
 \section{Future Work}
 \label{sec:future_work}
-% TODO: 200 words, tied to specific limitations
+
+Several directions for future research emerge from the limitations identified in this thesis.
+
+\textbf{External Validation:} The most critical next step is evaluating the classifiers on independent clinical datasets to assess real-world generalization. Collaboration with healthcare institutions to obtain anonymized patient records would enable this validation and address the cross-validation gap identified in Section~\ref{sec:limitations}.
+
+\textbf{Feature Engineering:} Incorporating patient demographics (age, sex, medical history) and symptom severity ratings could improve predictive performance. Deep learning approaches such as neural networks could also be explored to learn feature representations automatically.
+
+\textbf{Multi-Label Classification:} Extending the formulation from single-disease prediction to multi-label classification would better reflect clinical reality, where patients frequently present with comorbidities.
+
+\textbf{Specialist Mapping:} Building on the disease prediction results, a subsequent system could map predicted diseases to medical specialties, creating an end-to-end healthcare booking recommendation pipeline. This would bridge the gap between the classification task studied here and the practical booking application discussed in Section~\ref{sec:booking_context}.
