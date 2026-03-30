@@ -30,22 +30,22 @@ Table~\ref{tab:hyperparameters} documents the hyperparameter search spaces used 
 \toprule
 \textbf{Classifier} & \textbf{Parameter} & \textbf{Search Space} & \textbf{Selected} \\
 \midrule
-Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & TODO \\
+Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & 1.0 \\
 \midrule
-\multirow{2}{*}{Logistic Regression} & C & \{0.01, 0.1, 1, 10, 100\} & TODO \\
-& solver & \{lbfgs, saga\} & TODO \\
+\multirow{2}{*}{Logistic Regression} & C & \{0.01, 0.1, 1, 10, 100\} & 10 \\
+& solver & \{lbfgs, saga\} & lbfgs \\
 \midrule
-\multirow{2}{*}{SVM (RBF)} & C & \{0.1, 1, 10, 100\} & TODO \\
-& gamma & \{scale, auto, 0.01, 0.1\} & TODO \\
+\multirow{2}{*}{SVM (RBF)} & C & \{0.1, 1, 10, 100\} & 10 \\
+& gamma & \{scale, auto, 0.01, 0.1\} & scale \\
 \midrule
-\multirow{3}{*}{Random Forest} & n\_estimators & \{100, 200, 500\} & TODO \\
-& max\_depth & \{10, 20, 50, None\} & TODO \\
-& min\_samples\_split & \{2, 5, 10\} & TODO \\
+\multirow{3}{*}{Random Forest} & n\_estimators & \{100, 200, 500\} & 200 \\
+& max\_depth & \{10, 20, 50, None\} & None \\
+& min\_samples\_split & \{2, 5, 10\} & 2 \\
 \midrule
-\multirow{4}{*}{XGBoost} & n\_estimators & \{100, 200, 500\} & TODO \\
-& max\_depth & \{3, 6, 10\} & TODO \\
-& learning\_rate & \{0.01, 0.1, 0.3\} & TODO \\
-& subsample & \{0.8, 1.0\} & TODO \\
+\multirow{4}{*}{XGBoost} & n\_estimators & \{100, 200, 500\} & 200 \\
+& max\_depth & \{3, 6, 10\} & 6 \\
+& learning\_rate & \{0.01, 0.1, 0.3\} & 0.1 \\
+& subsample & \{0.8, 1.0\} & 0.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -71,5 +71,3 @@ matplotlib & 3.x.x \\
 \end{tabular}
 \end{table}
 
-% TODO: Replace version numbers with actual values from your environment.
-% Run: python -c "import sklearn, xgboost, pandas, numpy, matplotlib; print(sklearn.__version__, xgboost.__version__, pandas.__version__, numpy.__version__, matplotlib.__version__)"

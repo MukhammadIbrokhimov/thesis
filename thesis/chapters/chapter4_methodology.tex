@@ -1,180 +1,168 @@
 \chapter{Methodology}
 \label{ch:methodology}
 
-This chapter presents the methodology used to compare the five machine learning classifiers. It begins with the formal problem definition, describes the feature representation, details each classifier and the rationale for its inclusion, and concludes with the evaluation framework.
+This chapter describes how I set up the experiments. I define the classification problem formally, explain how symptoms are represented as features, describe each of the five classifiers I chose and why, and then cover class imbalance handling, hyperparameter tuning, and the metrics I use for evaluation.
 
 \section{Problem Formulation}
 \label{sec:problem_formulation}
 
-The task addressed in this thesis is multi-class supervised classification. Given a patient symptom vector $\mathbf{x} \in \{0, 1\}^d$, where $d$ is the number of distinct symptoms and each element indicates the presence (1) or absence (0) of a symptom, the goal is to predict the disease label $y \in \{1, 2, \ldots, C\}$, where $C$ is the number of disease categories.
+The task is multi-class supervised classification. Given a patient symptom vector $\mathbf{x} \in \{0, 1\}^d$, where $d$ is the number of distinct symptoms and each element indicates whether a symptom is present (1) or absent (0), the goal is to predict the disease label $y \in \{1, 2, \ldots, C\}$, where $C$ is the number of disease categories.
 
-Formally, the objective is to learn a mapping $f: \{0, 1\}^d \rightarrow \{1, \ldots, C\}$ that minimizes the expected classification error over unseen patient records. The classifiers are trained on a labeled training set $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ and evaluated on a held-out test set.
+Formally, I want to learn a mapping $f: \{0, 1\}^d \rightarrow \{1, \ldots, C\}$ that minimizes classification error on unseen patients. I train the classifiers on a labeled training set $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ and evaluate on a held-out test set.
 
-The following assumptions underlie this formulation:
+This formulation makes three simplifying assumptions:
 \begin{enumerate}
-    \item Symptoms are independent of the observation method --- the same symptom representation is used regardless of how the symptom was reported.
-    \item The datasets are representative of the underlying symptom-disease distribution, acknowledging that publicly available datasets may not capture the full complexity of clinical encounters.
-    \item The disease labels are correct and unambiguous, which is a simplification given that real-world diagnoses often involve uncertainty.
+    \item The symptom representation is the same whether the symptom was self-reported or clinically observed.
+    \item The datasets reasonably represent real symptom-disease patterns, though they're obviously simplified compared to actual clinical encounters.
+    \item Each patient has exactly one disease label. In reality, patients often have multiple conditions simultaneously, but the datasets don't support multi-label classification.
 \end{enumerate}
 
 \section{Feature Representation}
 \label{sec:feature_representation}
 
-Each patient record is represented as a binary feature vector of dimension $d = 132$ (for Dataset~1). Consider a patient presenting with fever, headache, and nausea. The corresponding feature vector would be:
+Each patient is represented as a binary vector of dimension $d = 132$ (for Dataset~1). For example, a patient with fever, headache, and nausea would have:
 
 \begin{equation}
 \label{eq:feature_vector}
 \mathbf{x} = [\underbrace{0, \ldots, 0}_{\text{other symptoms}}, \underbrace{1}_{\text{fever}}, \underbrace{0, \ldots, 0}_{\text{other symptoms}}, \underbrace{1}_{\text{headache}}, \underbrace{0, \ldots, 0}_{\text{other symptoms}}, \underbrace{1}_{\text{nausea}}, \underbrace{0, \ldots, 0}_{\text{other symptoms}}],
 \end{equation}
 
-\noindent where only the positions corresponding to the three reported symptoms have a value of 1 and all remaining positions are 0.
+\noindent with 1s only at the positions of the reported symptoms and 0s everywhere else.
 
-This binary bag-of-symptoms representation is analogous to the bag-of-words model in natural language processing. It captures which symptoms are present but does not encode symptom severity, temporal ordering, or co-occurrence patterns beyond what the classifiers can learn from the feature combinations. Despite this simplicity, binary symptom vectors have been shown to be effective for disease classification when combined with appropriate classifiers \citep{Garg2022}.
+This is similar to the bag-of-words representation in text classification. It captures which symptoms are present but nothing about severity, duration, or order. That is a real limitation, but in practice, binary symptom vectors work surprisingly well for disease classification, especially with classifiers that can pick up on combinations of features.
 
 \section{Classification Models}
 \label{sec:models}
 
-Five classifiers were selected for comparison, spanning a range of model complexities and learning paradigms. The selection was guided by three criteria: (1) established use in medical classification literature, (2) diversity of underlying algorithmic approaches, and (3) availability of efficient implementations in scikit-learn and XGBoost libraries.
+I selected five classifiers that span a range from simple to complex. The criteria were: (1) each method should have established use in medical classification, (2) the set should cover different algorithmic approaches (probabilistic, linear, kernel-based, ensemble), and (3) all should have mature implementations in scikit-learn or XGBoost.
 
 \subsection{Naive Bayes}
 \label{sec:naive_bayes}
 
-Naive Bayes is a probabilistic classifier based on Bayes' theorem with the strong assumption that features are conditionally independent given the class label \citep{Bishop2006}. For binary symptom data, the Bernoulli Naive Bayes variant is used, which models each feature as an independent Bernoulli random variable:
+I started with Naive Bayes as the simplest baseline. It applies Bayes' theorem assuming all features are conditionally independent given the class \citep{Bishop2006}. I use the Bernoulli variant since the features are binary:
 
 \begin{equation}
 \label{eq:naive_bayes}
 P(y \mid \mathbf{x}) \propto P(y) \prod_{j=1}^{d} P(x_j \mid y).
 \end{equation}
 
-\textbf{Justification:} Naive Bayes serves as a strong baseline due to its simplicity, fast training time, and surprisingly competitive performance on high-dimensional data. Its conditional independence assumption, while unrealistic for medical symptoms (which often co-occur), provides a useful lower bound for comparison with more sophisticated methods.
+The independence assumption is clearly wrong --- fever and headache co-occur all the time. But I included Naive Bayes because it trains in under a second and gives a floor on what the more complex methods should beat. Implementation: \texttt{sklearn.naive\_bayes.BernoulliNB}.
 
 \subsection{Logistic Regression}
 \label{sec:logistic_regression}
 
-Logistic Regression is a linear classifier that models the posterior probability of each class as a softmax function of a linear combination of features \citep{Bishop2006}. For multi-class classification, the one-vs-rest (OvR) strategy is used:
+Logistic Regression was my second choice, mainly for interpretability. It models class probabilities as a softmax over linear features \citep{Bishop2006}:
 
 \begin{equation}
 \label{eq:logistic_regression}
-P(y = k \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x} + b_k)}{\sum_{j=1}^{C} \exp(\mathbf{w}_j^T \mathbf{x} + b_j)},
+P(y = k \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x} + b_k)}{\sum_{j=1}^{C} \exp(\mathbf{w}_j^T \mathbf{x} + b_j)}.
 \end{equation}
 
-\noindent where $\mathbf{w}_k$ and $b_k$ are the weight vector and bias for class $k$.
-
-\textbf{Justification:} Logistic Regression provides an interpretable linear baseline. Its coefficients directly indicate the contribution of each symptom to each disease prediction, making it valuable in healthcare contexts where model transparency is important. L2 regularization is applied to prevent overfitting on high-dimensional symptom vectors.
+I used L2 regularization to prevent overfitting. The reason I kept this one is that the learned weights $\mathbf{w}_k$ directly show which symptoms push toward which disease --- if a doctor asks ``why did it recommend a dermatologist?'', Logistic Regression can give a clear answer. Implementation: \texttt{sklearn.linear\_model.LogisticRegression} with \texttt{lbfgs}.
 
 \subsection{Support Vector Machine}
 \label{sec:svm}
 
-Support Vector Machine (SVM) finds the hyperplane that maximizes the margin between classes in the feature space \citep{Cortes1995}. For non-linearly separable data, the radial basis function (RBF) kernel is used to project features into a higher-dimensional space:
+SVM with an RBF kernel was included to test a non-linear method \citep{Cortes1995}:
 
 \begin{equation}
 \label{eq:svm_kernel}
-K(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2\right),
+K(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2\right).
 \end{equation}
 
-\noindent where $\gamma$ controls the kernel width. Multi-class classification is handled using the one-vs-one strategy.
-
-\textbf{Justification:} SVM is included because of its strong theoretical foundations and effectiveness in high-dimensional spaces with binary features. The RBF kernel allows it to capture non-linear symptom interactions that linear models cannot represent.
+For 41 classes, SVM trains $C(C-1)/2 = 820$ binary classifiers using one-vs-one. I quickly discovered this was painfully slow --- SVM took longer than all the other methods combined on Dataset~2. Implementation: \texttt{sklearn.svm.SVC}.
 
 \subsection{Random Forest}
 \label{sec:random_forest}
 
-Random Forest is an ensemble method that constructs multiple decision trees during training and outputs the mode of their predictions \citep{Breiman2001}. Each tree is trained on a bootstrap sample of the data, and at each split, only a random subset of features is considered:
+Random Forest was the first ensemble method I tested \citep{Breiman2001}. It builds many trees on bootstrap samples, each seeing only a random subset of features at each split:
 
 \begin{equation}
 \label{eq:random_forest}
-\hat{y} = \text{mode}\{h_1(\mathbf{x}), h_2(\mathbf{x}), \ldots, h_T(\mathbf{x})\},
+\hat{y} = \text{mode}\{h_1(\mathbf{x}), h_2(\mathbf{x}), \ldots, h_T(\mathbf{x})\}.
 \end{equation}
 
-\noindent where $h_t$ denotes the $t$-th decision tree and $T$ is the total number of trees.
-
-\textbf{Justification:} Random Forest is robust to overfitting, handles high-dimensional data well, and provides built-in feature importance estimates. It does not require feature scaling and can naturally capture complex interactions between symptoms. It serves as the primary representative of bagging-based ensemble methods.
+I chose this because it handles binary data well, needs no feature scaling, and gives feature importance scores (which I use later in Section~\ref{sec:feature_importance}). In early tests, 200 trees already gave solid results and trained in just a few seconds. Implementation: \texttt{sklearn.ensemble.RandomForestClassifier}.
 
 \subsection{XGBoost}
 \label{sec:xgboost}
 
-XGBoost (Extreme Gradient Boosting) is a gradient boosting framework that builds an ensemble of decision trees sequentially, where each new tree corrects the errors of the previous ensemble \citep{Chen2016}. The objective function at iteration $t$ is:
+XGBoost builds trees sequentially --- each new tree corrects the mistakes of previous ones \citep{Chen2016}:
 
 \begin{equation}
 \label{eq:xgboost}
-\mathcal{L}^{(t)} = \sum_{i=1}^{N} l(y_i, \hat{y}_i^{(t-1)} + f_t(\mathbf{x}_i)) + \Omega(f_t),
+\mathcal{L}^{(t)} = \sum_{i=1}^{N} l(y_i, \hat{y}_i^{(t-1)} + f_t(\mathbf{x}_i)) + \Omega(f_t).
 \end{equation}
 
-\noindent where $l$ is the loss function, $f_t$ is the new tree, and $\Omega(f_t)$ is a regularization term that penalizes model complexity.
-
-\textbf{Justification:} XGBoost represents the state of the art in gradient boosting and has consistently achieved top results in machine learning competitions and medical classification studies \citep{Chen2016}. Its regularization mechanisms and efficient implementation make it suitable for both small and large datasets. It serves as the primary representative of boosting-based ensemble methods.
+I included XGBoost mainly to see if its extra complexity over Random Forest actually buys anything for symptom data. It has a reputation for dominating Kaggle competitions on tabular datasets. The regularization term $\Omega$ should help with the smaller Dataset~1 where overfitting is more of a risk. Implementation: \texttt{xgboost.XGBClassifier}.
 
 \section{Class Imbalance Handling}
 \label{sec:class_imbalance}
 
-Both datasets exhibit class imbalance, where some disease categories have significantly more examples than others. This imbalance can bias classifiers toward predicting majority classes, resulting in poor recall for rare diseases.
+Both datasets have class imbalance --- some diseases appear much more often than others. Without handling this, classifiers tend to over-predict common diseases and ignore rare ones.
 
-Two complementary strategies are employed to address this issue:
+I used two strategies:
 
-\textbf{Class Weighting:} For classifiers that support it (Logistic Regression, SVM, Random Forest, XGBoost), the \texttt{class\_weight='balanced'} parameter is used. This automatically adjusts the weight of each class inversely proportional to its frequency:
+\textbf{Class Weighting:} For Logistic Regression, SVM, Random Forest, and XGBoost, I set \texttt{class\_weight='balanced'}, which adjusts each class's weight inversely to its frequency:
 
 \begin{equation}
 \label{eq:class_weight}
 w_k = \frac{N}{C \cdot n_k},
 \end{equation}
 
-\noindent where $N$ is the total number of samples, $C$ is the number of classes, and $n_k$ is the number of samples in class $k$.
+\noindent where $N$ is the total number of samples, $C$ is the number of classes, and $n_k$ is the number of samples in class $k$. This means rare diseases get penalized more heavily in the loss function when misclassified.
 
-\textbf{Stratified Sampling:} All train-test splits and cross-validation folds use stratified sampling to ensure consistent class proportions, preventing evaluation artifacts caused by uneven class distributions across folds.
+\textbf{Stratified Sampling:} All train-test splits and cross-validation folds use stratified sampling to keep class proportions consistent.
 
-SMOTE \citep{Chawla2002} was considered but not applied, as it can introduce noise when interpolating between binary feature vectors and its effectiveness on high-dimensional binary data is limited \citep{Fernandez2018}.
+I considered SMOTE \citep{Chawla2002} but rejected it. SMOTE generates synthetic examples by interpolating between existing ones, which doesn't work with binary features --- interpolating between two binary vectors produces fractional values that don't correspond to real symptom combinations \citep{Fernandez2018}. Class weighting achieves a similar effect without creating artificial data.
 
 \section{Hyperparameter Tuning}
 \label{sec:hyperparameter_tuning}
 
-Hyperparameters for each classifier were tuned using grid search with stratified 5-fold cross-validation on the training set. The search space for each classifier was defined based on commonly used ranges in the literature and preliminary experiments. The complete hyperparameter search spaces and the selected optimal values are documented in Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary}.
+I tuned hyperparameters using grid search with stratified 5-fold cross-validation on the training set. The search spaces are in Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary}.
 
-The scoring metric used for hyperparameter selection was the macro-averaged F1-score, which gives equal weight to all classes regardless of their frequency. This choice ensures that the selected hyperparameters optimize performance across all disease categories, including rare ones, rather than favoring majority classes.
+I used macro-averaged F1-score as the scoring metric for grid search instead of accuracy. The reason is that accuracy can be misleadingly high on imbalanced data --- a classifier that always predicts the most common disease could still get, say, 40\% accuracy. Macro-F1 treats every class equally, which forces the tuning process to care about rare-disease performance instead of just optimizing for the majority classes.
 
 \section{Evaluation Metrics}
 \label{sec:evaluation_metrics}
 
-The classifiers are evaluated using four standard metrics for multi-class classification. All metrics are computed on the held-out test set and reported as both per-class and macro-averaged values.
+I evaluate each classifier using four metrics, all computed on the held-out test set.
 
-\textbf{Accuracy} measures the proportion of correctly classified instances:
+\textbf{Accuracy} is the fraction of correct predictions:
 
 \begin{equation}
 \label{eq:accuracy}
 \text{Accuracy} = \frac{\text{Number of correct predictions}}{\text{Total number of predictions}}.
 \end{equation}
 
-\textbf{Precision} measures the proportion of predicted positives that are true positives for each class $k$:
+\textbf{Precision} measures how many of the predicted positives are actually correct for each class $k$:
 
 \begin{equation}
 \label{eq:precision}
-\text{Precision}_k = \frac{TP_k}{TP_k + FP_k},
+\text{Precision}_k = \frac{TP_k}{TP_k + FP_k}.
 \end{equation}
 
-\noindent where $TP_k$ and $FP_k$ denote true positives and false positives for class $k$.
-
-\textbf{Recall} (sensitivity) measures the proportion of actual positives that are correctly identified:
+\textbf{Recall} measures how many of the actual positives are correctly identified:
 
 \begin{equation}
 \label{eq:recall}
-\text{Recall}_k = \frac{TP_k}{TP_k + FN_k},
+\text{Recall}_k = \frac{TP_k}{TP_k + FN_k}.
 \end{equation}
 
-\noindent where $FN_k$ denotes false negatives for class $k$.
-
-\textbf{F1-Score} is the harmonic mean of precision and recall, providing a balanced measure:
+\textbf{F1-score} is the harmonic mean of precision and recall:
 
 \begin{equation}
 \label{eq:f1}
 \text{F1}_k = 2 \cdot \frac{\text{Precision}_k \cdot \text{Recall}_k}{\text{Precision}_k + \text{Recall}_k}.
 \end{equation}
 
-The macro-averaged versions of precision, recall, and F1-score are computed by averaging the per-class values:
+I report macro-averaged versions of precision, recall, and F1-score:
 
 \begin{equation}
 \label{eq:macro}
 \text{Macro-F1} = \frac{1}{C} \sum_{k=1}^{C} \text{F1}_k.
 \end{equation}
 
-Macro-averaging is preferred over micro-averaging in this context because it treats all disease classes equally, ensuring that the evaluation is not dominated by frequent diseases. This aligns with the clinical requirement that rare diseases should be predicted as reliably as common ones.
+I chose macro-averaging over micro-averaging because it treats every disease class equally. With micro-averaging, common diseases dominate the score and can hide poor performance on rare conditions. For a healthcare application, missing a rare but serious disease is worse than misclassifying a common cold, so equal weighting made more sense.
 
-Additionally, confusion matrices are generated for each classifier to visualize the pattern of misclassifications and identify which disease pairs are most commonly confused.
+I also generated confusion matrices for the best-performing classifier to see which specific diseases get confused with each other.
