@@ -4,16 +4,42 @@
 \section{Background and Motivation}
 \label{sec:background}
 
-Healthcare systems around the world face a common problem: patients often do not know which doctor to see. Someone with a persistent cough might book an appointment with a general practitioner, get referred to a pulmonologist, wait weeks for that appointment, and only then receive a diagnosis. This inefficiency costs time and resources on both sides. The World Health Organization has identified timely access to appropriate care as one of the key challenges in primary healthcare \citep{WHO2021}.
+Healthcare systems around the world face a common problem: patients often do not know which doctor to see. Someone with a persistent cough might book an appointment with a general practitioner, get referred to a pulmonologist, wait weeks for that appointment, and only then receive a diagnosis. This inefficiency costs time and resources on both sides. Patients wait longer for appropriate care, and healthcare providers waste appointments on cases that could have been routed more efficiently from the start. The World Health Organization has identified timely access to appropriate care as one of the key challenges in primary healthcare, particularly in regions where specialist availability is limited \citep{WHO2021}.
 
-Machine learning offers a way to address this. By training classifiers on datasets of symptoms and their corresponding diagnoses, it is possible to build models that predict likely diseases from a set of reported symptoms \citep{Rajpurkar2022}. Such a model could, for example, suggest that a patient with certain skin-related symptoms should book directly with a dermatologist rather than going through a general practitioner first.
+The problem is not just about waiting times. Inefficient routing also leads to worse health outcomes. A patient with a serious condition might wait weeks to see a GP, then wait more weeks for a specialist referral, delaying diagnosis and treatment. In some cases, this delay can make the difference between successful treatment and permanent damage.
 
-Several classifiers have been applied to this problem, from simple ones like Naive Bayes to ensemble methods like Random Forest and XGBoost \citep{Uddin2019}. But when I reviewed the literature, I found that most studies test only one or two classifiers at a time, which makes it hard to know which method actually works best. There is also limited work on how these classifiers behave when the dataset size changes significantly, or when some diseases are much rarer than others.
+On the other side, general practitioners spend a significant portion of their time on cases that could be handled directly by specialists. This creates bottlenecks in the healthcare system and reduces the time doctors can spend on patients who actually need general care. A more efficient triage system would benefit everyone: patients get faster access to the right specialist, GPs have more capacity for cases that require their expertise, and specialists see patients who actually need their services.
+
+Machine learning offers a potential solution. By training classifiers on datasets of symptoms and their corresponding diagnoses, it is possible to build models that predict likely diseases from a set of reported symptoms \citep{Rajpurkar2022}. Such a model could be integrated into a healthcare booking system. When a patient tries to book an appointment, the system asks them to fill out a symptom questionnaire, runs the classifier on their responses, and suggests the most appropriate specialist based on the predicted disease. For example, a patient with certain skin-related symptoms might be directed to book directly with a dermatologist rather than going through a general practitioner first.
+
+This kind of system has several advantages. It is available 24/7 without requiring a nurse or doctor to manually triage every request. It scales to handle many patients simultaneously. It can be deployed through a web or mobile app, making it accessible even in remote areas where in-person triage is not practical. And if done carefully, it could reduce waiting times and improve patient outcomes.
+
+However, building such a system raises important questions. Which machine learning classifier should be used? How accurate does the model need to be before it is safe to deploy? What happens when the model is uncertain? How do you handle rare diseases that appear infrequently in the training data? These are the questions this thesis tries to address.
+
+\subsection{Machine Learning for Disease Prediction}
+
+Several classifiers have been applied to symptom-based disease prediction, from simple ones like Naive Bayes to ensemble methods like Random Forest and XGBoost \citep{Uddin2019}. Each of these methods has different strengths and weaknesses. Naive Bayes is fast and easy to interpret but makes strong assumptions about feature independence that might not hold for symptom data. Logistic Regression is also interpretable and works well for linearly separable problems, but it cannot capture complex interactions between symptoms without manual feature engineering. Support Vector Machines can handle non-linear decision boundaries but are slow to train on large datasets. Random Forest and XGBoost are powerful ensemble methods that often achieve the best performance, but they are more complex and harder to interpret.
+
+When I reviewed the literature, I found that most studies test only one or two classifiers at a time, which makes it hard to know which method actually works best. Different studies use different datasets, different preprocessing steps, and different evaluation metrics, so comparing results across papers is difficult. Some studies report high accuracy numbers but don't mention how they handled class imbalance, which is a critical issue for medical datasets where some diseases are much rarer than others.
+
+There is also limited work on how these classifiers behave when the dataset size changes significantly. Some classifiers are known to work well on small datasets but plateau as more data becomes available, while others continue to improve. Understanding this scaling behavior is important because different deployment contexts will have very different amounts of training data available.
+
+\subsection{Why This Work Matters}
+
+This thesis provides a controlled comparison of five commonly used machine learning classifiers on the same symptom-disease prediction task, using the same preprocessing and evaluation procedures. By testing on two datasets of very different sizes, I can see how performance scales with data availability. By using multiple evaluation metrics (accuracy, precision, recall, F1-score), I can assess different aspects of classifier performance rather than relying on a single number.
+
+Beyond the technical comparison, this thesis discusses the practical and ethical considerations that would matter for a real deployment. How do you choose between a more accurate but less interpretable model and a slightly less accurate but transparent one? What are the regulatory requirements under the EU AI Act and GDPR? How do you handle the risk that a wrong prediction could harm a patient? These questions go beyond machine learning and require input from doctors, ethicists, regulators, and patients themselves. This thesis cannot answer all of them, but it tries to frame them clearly so that future work can address them.
 
 \section{Problem Statement}
 \label{sec:problem_statement}
 
-There is no systematic comparison of multiple machine learning classifiers for symptom-based disease prediction under controlled conditions. Most studies evaluate a single algorithm or compare a narrow set of models on different datasets with different preprocessing steps, making the results hard to compare. Class imbalance --- the fact that some diseases appear far more often than others in the data --- is often ignored or handled inconsistently.
+There is no systematic comparison of multiple machine learning classifiers for symptom-based disease prediction under controlled conditions. Most studies in the literature evaluate a single algorithm or compare a narrow set of models (typically two or three) on different datasets with different preprocessing steps, making the results hard to compare across papers. When a study reports that Random Forest achieves 92\% accuracy and another study reports that XGBoost achieves 94\% accuracy, you cannot conclude that XGBoost is better because they might have used different datasets, different train-test splits, different hyperparameter tuning procedures, or different evaluation metrics.
+
+Class imbalance --- the fact that some diseases appear far more often than others in the data --- is often ignored or handled inconsistently. Some studies use techniques like SMOTE to balance the classes, others use class weighting, and many do nothing at all. This makes it hard to know whether reported performance numbers reflect genuine classifier quality or just good performance on common diseases while ignoring rare ones.
+
+Another gap is the lack of multi-scale evaluation. Most studies test on a single dataset, so we don't know whether the results generalize to different data sizes. A classifier that works well on 5,000 examples might not scale to 246,000 examples, or it might improve dramatically. Understanding this scaling behavior matters for practical deployment.
+
+Finally, most studies focus only on predictive performance (accuracy, F1-score) and don't discuss the practical trade-offs that matter for real deployment: training time, interpretability, regulatory compliance, handling of rare diseases, and what happens when the model is uncertain. These factors can be just as important as raw accuracy when deciding which classifier to deploy.
 
 \section{Research Question}
 \label{sec:research_question}
@@ -40,7 +66,31 @@ To answer this question, I pursue the following objectives:
 \section{Scope and Limitations}
 \label{sec:scope}
 
-I focus on predicting disease categories from binary symptom vectors. I do not cover specialist mapping, treatment recommendation, or real-time clinical deployment. The evaluation uses two publicly available datasets and does not involve clinical validation with real patient data. I discuss the implications for healthcare booking at a conceptual level rather than through a deployed system.
+This thesis focuses on predicting disease categories from binary symptom vectors using supervised classification. The scope includes:
+
+\begin{itemize}
+    \item Comparing five machine learning classifiers (Naive Bayes, Logistic Regression, SVM, Random Forest, XGBoost) under identical experimental conditions
+    \item Testing on two publicly available Kaggle datasets of different sizes
+    \item Handling class imbalance through class weighting
+    \item Evaluating performance using multiple metrics (accuracy, precision, recall, F1-score)
+    \item Analyzing error patterns through confusion matrices and feature importance
+    \item Discussing practical deployment considerations including interpretability, regulatory requirements, and ethical concerns
+\end{itemize}
+
+The thesis does \textbf{not} cover:
+
+\begin{itemize}
+    \item Deep learning methods (neural networks, transformers) --- I focus on traditional ML classifiers that are more interpretable and require less training data
+    \item The disease-to-specialist mapping layer --- I assume this mapping exists but don't implement or evaluate it
+    \item Treatment recommendation --- I only predict disease categories, not what treatment the patient should receive
+    \item Real-time clinical deployment --- the evaluation is offline using historical datasets, not tested with real patients
+    \item Multi-label classification --- I assume each patient has exactly one disease, though in reality patients can have multiple conditions
+    \item Symptom severity or temporal information --- the datasets only provide binary symptom presence/absence
+\end{itemize}
+
+The evaluation uses two publicly available datasets from Kaggle and does not involve clinical validation with real patient data from hospitals or clinics. The performance numbers reported in this thesis should be treated as upper bounds. In a real deployment with actual patient data, performance would likely be lower due to noisier symptom reporting, different disease distributions, and other factors that are not present in the cleaned Kaggle datasets.
+
+I discuss the implications for healthcare booking at a conceptual level rather than through a deployed system. Building a complete booking system would require integration with appointment scheduling software, user interface design, regulatory approval, and partnerships with healthcare providers, all of which are beyond the scope of a bachelor thesis.
 
 \section{Thesis Structure}
 \label{sec:thesis_structure}

@@ -19,30 +19,101 @@ One thing that stood out to me while reading the literature is that accuracy alo
 
 Symptom-based disease prediction is a specific type of supervised classification where the inputs are patient-reported symptoms and the output is a disease category. Compared to image-based or genomics-based approaches, symptom-based prediction uses simpler features --- typically binary indicators for whether each symptom is present or absent. This simplicity makes it practical for patient-facing applications and low-resource settings.
 
-Several studies have tested individual classifiers on symptom data. \citet{Uddin2019} compared Naive Bayes, Decision Trees, and Random Forest on multiple medical datasets and found that ensemble methods generally performed better, though the datasets and preprocessing varied between experiments, making it hard to draw firm conclusions.
+\subsection{Feature Representation Approaches}
 
-\citet{Chowdhury2024} reviewed the ML-for-diagnosis literature systematically and found that while Random Forest and XGBoost consistently ranked high, very few studies compared multiple classifiers under the same conditions. They specifically called for controlled comparisons with identical preprocessing and evaluation --- which is exactly what I do in this thesis.
+Most studies represent symptoms as binary vectors, where each position corresponds to a symptom and the value is 1 (present) or 0 (absent). This is simple and effective, though it ignores severity and duration. For example, a patient with a mild headache and another with a severe migraine both get represented as headache=1, which loses potentially useful information. Despite this limitation, binary vectors work well for disease classification, especially with ensemble methods that can pick up on feature interactions \citep{Breiman2001}.
 
-Most studies represent symptoms as binary vectors, where each position corresponds to a symptom and the value is 1 (present) or 0 (absent). This is simple and effective, though it ignores severity and duration. Despite this limitation, binary vectors work well for disease classification, especially with ensemble methods that can pick up on feature interactions \citep{Breiman2001}.
+Some researchers have tried alternative representations. A few studies have experimented with ordinal encoding, where symptoms are rated on a scale (e.g., 0 = absent, 1 = mild, 2 = moderate, 3 = severe). However, this requires more detailed data collection and introduces subjectivity --- what one patient calls "moderate pain" another might call "severe." The added complexity does not always translate to better prediction accuracy, which is why most studies stick with binary encoding.
 
-One thing I noticed while reviewing the literature is that almost all studies use a single dataset. This makes it impossible to tell whether the results generalize or are specific to that particular data. I decided to test on two datasets of very different sizes to address this: one with about 5,000 records \citep{Kaggle_Disease2020} and one with about 246,000 \citep{Kaggle_Diseases2023}.
+Another approach is to encode symptom duration or onset timing. For instance, a symptom that started two days ago might be encoded differently from one that started two weeks ago. I did not find many studies that successfully used this kind of temporal information, probably because it is hard to collect reliably and most datasets do not include it.
+
+\subsection{Review of Comparative Studies}
+
+Several studies have tested individual classifiers on symptom data, but very few have compared multiple methods under identical conditions. \citet{Uddin2019} compared Naive Bayes, Decision Trees, and Random Forest on multiple medical datasets and found that ensemble methods generally performed better. However, the datasets and preprocessing varied between experiments, which makes it hard to draw firm conclusions about which classifier is actually best. For example, they used different train-test splits for different classifiers, and some datasets were balanced while others were not.
+
+A study by \citet{Sarker2021} tested several classifiers on a diabetes prediction dataset and found that Logistic Regression performed surprisingly well relative to more complex methods. They attributed this to the dataset having relatively simple decision boundaries that did not require the extra modeling capacity of ensemble methods. This suggests that the best classifier depends on the specific characteristics of the data, which is one reason I test five different classifiers in this thesis rather than assuming one will always win.
+
+\citet{Chowdhury2024} conducted a systematic review of the ML-for-diagnosis literature and found that while Random Forest and XGBoost consistently ranked high across different studies, very few studies compared multiple classifiers under the same conditions. They specifically called for controlled comparisons with identical preprocessing and evaluation procedures --- which is exactly what I do in this thesis. Their review covered 87 papers published between 2018 and 2023, and only 12 of those compared more than three classifiers on the same dataset with the same preprocessing. Most studies picked one or two classifiers, tuned them carefully, and reported good results, but this does not tell us whether a different classifier might have worked even better.
+
+\subsection{Dataset Characteristics in Prior Work}
+
+One thing I noticed while reviewing the literature is that almost all studies use a single dataset. This makes it impossible to tell whether the results generalize or are specific to that particular data. For example, a classifier might perform well on a dataset with 10 disease classes and 50 symptoms but fail on a dataset with 40 disease classes and 132 symptoms. The complexity of the classification problem increases with both the number of classes and the number of features, so testing on only one dataset does not give a complete picture.
+
+Some studies use proprietary clinical data from hospitals, which makes the results hard to reproduce. Public datasets like those on Kaggle are easier to access and allow other researchers to verify the results, but they might be cleaner or more structured than real clinical data. There is a trade-off between reproducibility and realism.
+
+I decided to test on two datasets of very different sizes to address the generalization question: one with about 5,000 records \citep{Kaggle_Disease2020} and one with about 246,000 \citep{Kaggle_Diseases2023}. This lets me see whether classifier rankings are consistent across different data scales and whether more data helps all classifiers equally or benefits some more than others.
 
 \section{Challenges in Medical Prediction}
 \label{sec:challenges}
 
-Medical classification has challenges that standard ML benchmarks do not. The biggest one is class imbalance: some diseases are common and others are rare, so the training data is skewed. A classifier can achieve high accuracy by simply predicting the most common diseases and ignoring the rare ones \citep{Haixiang2017}.
+Medical classification has challenges that standard ML benchmarks like image classification or text classification do not face. This section covers the three main challenges I found in the literature: class imbalance, noisy and incomplete symptom data, and the difficulty of evaluation.
 
-\citet{Chawla2002} proposed SMOTE (Synthetic Minority Over-sampling Technique), which creates synthetic examples of rare classes by interpolating between existing ones. SMOTE has been widely used, but it has problems with binary data --- interpolating between two binary vectors can produce unrealistic symptom combinations \citep{Fernandez2018}. An alternative is class weighting, where the loss function penalizes misclassifications of rare diseases more heavily. I chose class weighting for this thesis because it works naturally with binary features and doesn't create artificial symptom patterns.
+\subsection{Class Imbalance}
 
-\citet{Thabtah2020} tested multiple imbalance-handling techniques across different classifiers and found that no single technique works best everywhere --- it depends on the classifier and the degree of imbalance. This is one of the reasons I test five different classifiers rather than just picking one.
+The biggest challenge is class imbalance. Some diseases are common (like the flu or common cold) and others are rare (like certain autoimmune conditions), so the training data is heavily skewed. A classifier can achieve high accuracy by simply predicting the most common diseases and completely ignoring the rare ones \citep{Haixiang2017}. For example, if 80\% of patients in the dataset have one of five common diseases, a classifier that only ever predicts those five diseases will still get 80\% accuracy even though it is useless for diagnosing the other 36 diseases.
 
-Beyond imbalance, symptom data is noisy. Patients may forget to mention symptoms, describe them imprecisely, or report symptoms that are not relevant to their condition \citep{Chowdhury2024}. Public datasets, while useful for research, may not fully capture the messiness of real clinical encounters.
+This is why accuracy alone is a misleading metric for imbalanced data. A classifier that gets 95\% accuracy might be doing well across all classes, or it might be ignoring half of them. This is one reason I use precision, recall, and F1-score in addition to accuracy (see Section~\ref{sec:evaluation_metrics}).
+
+Several techniques have been proposed to handle class imbalance. \citet{Chawla2002} introduced SMOTE (Synthetic Minority Over-sampling Technique), which creates synthetic examples of rare classes by interpolating between existing ones. If you have two patients with a rare disease and similar symptom patterns, SMOTE generates a new synthetic patient whose symptom vector is somewhere in between. This increases the number of training examples for rare diseases, which helps classifiers learn better decision boundaries.
+
+However, SMOTE has problems with binary data. Interpolating between two binary vectors can produce unrealistic symptom combinations \citep{Fernandez2018}. For instance, if patient A has symptoms [1, 0, 1, 0] and patient B has symptoms [0, 1, 1, 0], the interpolated vector might be [0.5, 0.5, 1, 0]. What does it mean for a symptom to have a value of 0.5? You either have the symptom or you don't. Some implementations round these to 0 or 1, but that can create symptom combinations that don't make medical sense.
+
+An alternative is class weighting, where the loss function penalizes misclassifications of rare diseases more heavily during training. If a disease appears 100 times in the training set versus 10 times for another disease, you can weight the second disease 10 times higher so that misclassifying it counts as much as misclassifying 10 examples of the common disease. Most scikit-learn classifiers support this through a \texttt{class\_weight='balanced'} parameter, which automatically computes the weights based on class frequencies.
+
+I chose class weighting for this thesis because it works naturally with binary features and doesn't create artificial symptom patterns. It also does not increase the size of the training set, so training time stays the same.
+
+\citet{Thabtah2020} tested multiple imbalance-handling techniques (SMOTE, class weighting, undersampling, and combinations) across different classifiers and found that no single technique works best everywhere. The best approach depends on the classifier and the degree of imbalance. For instance, tree-based methods like Random Forest are more robust to imbalance than Naive Bayes because they can adjust their split thresholds based on class weights. This is one of the reasons I test five different classifiers rather than just picking one and assuming it will work well for all cases.
+
+\subsection{Noisy and Incomplete Data}
+
+Beyond imbalance, symptom data is noisy. Patients may forget to mention symptoms, describe them imprecisely, or report symptoms that are not actually relevant to their condition \citep{Chowdhury2024}. For example, a patient with the flu might report headache, fever, and fatigue, but forget to mention a sore throat because they don't think it is important. This introduces missing information into the symptom vector.
+
+On the other hand, patients might over-report symptoms. If someone looks up their symptoms online before filling out a questionnaire, they might start noticing and reporting minor symptoms they would have otherwise ignored. This adds noise to the data.
+
+Public datasets like the ones I use in this thesis are cleaner than real clinical data because they have been curated and preprocessed by the dataset creators. They typically don't include the kind of messy, incomplete, or contradictory information you would get from actual patient encounters. This means that classifier performance on these datasets might be optimistic compared to what you would see in a real deployment.
+
+Another issue is that symptoms can mean different things to different people. "Fatigue" might mean "I feel a bit tired" to one patient and "I can barely get out of bed" to another. Binary symptom encoding treats these the same, which loses information. Some studies have tried to address this by asking patients to rate symptom severity on a scale, but this adds complexity to the data collection process and introduces subjectivity.
+
+\subsection{Evaluation Difficulties}
+
+Evaluating medical prediction systems is harder than evaluating a typical ML model. In a standard classification task, you care about overall accuracy or F1-score. In healthcare, different types of errors have different consequences. Missing a serious disease (false negative) is much worse than incorrectly predicting a mild disease (false positive). A false negative might delay treatment, while a false positive just means the patient gets sent to the wrong specialist and has to be redirected.
+
+This makes it hard to summarize model performance in a single number. You really need to look at the confusion matrix and see which diseases are being confused with which. I discuss this in more detail in Section~\ref{sec:error_analysis}.
+
+Another evaluation challenge is that you can't just deploy a system and measure whether it works in the real world, at least not without careful ethical oversight and regulatory approval. Testing new medical AI systems on real patients requires institutional review board approval, informed consent, and a lot of safeguards. This means most research, including this thesis, relies on offline evaluation using historical datasets, which might not reflect how the system would actually perform in practice.
 
 \section{Healthcare Booking Context}
 \label{sec:booking_context}
 
 The practical motivation behind this work is healthcare booking. When patients feel sick, they have to decide whom to see: a general practitioner, a specialist, or an emergency department. Most people make this decision with limited medical knowledge, which leads to wasted appointments, unnecessary referrals, and delayed treatment for serious conditions.
 
-A symptom-based prediction model could help here. If a patient enters their symptoms into a booking system and the model predicts a dermatological condition, the system could suggest booking directly with a dermatologist. The WHO's digital health strategy supports this kind of tool for improving healthcare access \citep{WHO2021}.
+\subsection{The Triage Problem}
 
-But deploying ML in healthcare raises serious concerns. The EU's General Data Protection Regulation \citep{GDPR2016} has strict rules about processing health data, and the new EU AI Act \citep{EUAI2024} classifies medical AI systems as high-risk, requiring documented risk assessments and human oversight. I discuss these regulatory aspects in more detail in Chapter~\ref{ch:discussion}.
+In many healthcare systems, patients book an appointment with a general practitioner first, who then refers them to a specialist if needed. This works, but it is inefficient. A patient with an obvious skin condition has to see a GP first before getting referred to a dermatologist, which adds weeks to their wait time and uses up a GP appointment that could have gone to someone who actually needs general care.
+
+Some healthcare providers have tried to address this with nurse-led triage phone lines, where a nurse asks about symptoms and suggests where to go. This helps, but it still requires a person to be available, which limits capacity. An automated symptom-based prediction system could do the same job at scale, available 24/7, at essentially zero marginal cost per patient.
+
+The WHO's digital health strategy explicitly supports this kind of tool for improving healthcare access \citep{WHO2021}, particularly in underserved areas where specialists are scarce. If a rural clinic can route patients more efficiently to the right kind of doctor, it reduces unnecessary travel and waiting times.
+
+\subsection{How a Booking System Would Work}
+
+Here is how I imagine a symptom-based booking system would work in practice. A patient logs into a healthcare booking app and is asked to fill out a symptom questionnaire. The questionnaire presents a list of common symptoms (fever, cough, headache, rash, etc.) and the patient checks the ones they are experiencing.
+
+The symptom vector gets passed to a machine learning classifier, which predicts the most likely disease category. Based on that prediction, the system suggests a specialist. For example:
+\begin{itemize}
+    \item Predicted disease: eczema → Suggested specialist: dermatologist
+    \item Predicted disease: pneumonia → Suggested specialist: pulmonologist or general practitioner (urgent)
+    \item Predicted disease: migraine → Suggested specialist: neurologist
+\end{itemize}
+
+The system would show the suggested specialist along with available appointment times. Importantly, it should also provide an option to override the suggestion and book with a different specialist or GP if the patient is unsure. The system is meant to assist decision-making, not replace it.
+
+\subsection{Regulatory and Ethical Concerns}
+
+Deploying ML in healthcare raises serious concerns that go beyond technical performance. The EU's General Data Protection Regulation \citep{GDPR2016} has strict rules about processing health data. Symptom information is considered sensitive personal data under GDPR, which means the system needs explicit patient consent, must clearly explain how the data will be used, and has to provide strong security guarantees. Patients also have the right to access their data, correct it, and request deletion.
+
+The new EU AI Act \citep{EUAI2024} classifies medical AI systems as high-risk, which means they are subject to additional requirements. The system would need documented risk assessments, ongoing monitoring for bias or performance drift, and human oversight. The AI Act specifically requires that high-risk systems be transparent and explainable, which favors simpler models like Logistic Regression over black-box models like deep neural networks.
+
+There are also liability concerns. If the system suggests the wrong specialist and a patient's condition worsens because of the delay, who is responsible? The healthcare provider? The software vendor? The ML engineer who trained the model? These legal questions are still being worked out in courts and regulatory bodies.
+
+I discuss these regulatory aspects in more detail in Chapter~\ref{ch:discussion}, particularly how they affect the choice of classifier and the design of the overall system.
