@@ -1,0 +1,69 @@
+\chapter{Discussion}
+\label{ch:discussion}
+
+This chapter interprets the experimental results, examines the trade-offs between classifiers, acknowledges the limitations of this study, and discusses the ethical and practical considerations for deploying symptom-based prediction models in healthcare.
+
+\section{Interpretation of Results}
+\label{sec:interpretation}
+
+The experimental results consistently demonstrate that ensemble methods --- Random Forest and XGBoost --- outperform the traditional classifiers (Naive Bayes, Logistic Regression, and SVM) for symptom-based disease prediction on both datasets. This finding aligns with the broader machine learning literature, where ensemble methods have repeatedly shown superior performance on structured tabular data \citep{Chen2016, Breiman2001}.
+
+The success of ensemble methods can be attributed to their ability to capture complex, non-linear interactions between symptoms. Individual decision trees within a Random Forest or XGBoost ensemble can learn conditional dependencies (e.g., ``if fever AND rash AND joint pain, then disease X'') that linear models cannot represent. Given that medical diagnosis inherently involves such conditional reasoning, the advantage of tree-based ensembles is not surprising.
+
+XGBoost's marginally superior performance over Random Forest can be explained by its sequential boosting mechanism, which focuses each subsequent tree on the examples that previous trees misclassified. This targeted error correction is particularly beneficial for rare diseases, where the initial trees may not have sufficient exposure to minority class examples. The regularization terms in XGBoost's objective function (eq.~\ref{eq:xgboost}) further prevent overfitting, which is critical when some disease categories have limited training data.
+
+The improvement in performance from Dataset~1 to Dataset~2 across all classifiers confirms the importance of data volume for medical classification. However, the diminishing marginal returns observed for simpler models (particularly Naive Bayes) suggest that additional data cannot compensate for fundamental model limitations --- a finding consistent with the bias-variance trade-off framework \citep{Bishop2006}.
+
+\section{Trade-offs Between Models}
+\label{sec:tradeoffs}
+
+While XGBoost achieved the highest overall performance, the choice of the most suitable model for deployment depends on context-specific requirements beyond raw accuracy.
+
+\textbf{Interpretability:} Logistic Regression offers the highest interpretability, as its coefficients directly quantify the contribution of each symptom to each disease prediction. This transparency is valuable in healthcare settings where clinicians need to understand and verify model decisions. Random Forest and XGBoost provide feature importance rankings but lack the instance-level interpretability of linear models.
+
+\textbf{Computational Efficiency:} Naive Bayes and Logistic Regression are significantly faster to train and deploy than SVM or the ensemble methods. For applications requiring real-time predictions on resource-constrained devices (e.g., mobile health applications), the computational cost of ensemble methods may be prohibitive.
+
+\textbf{Robustness to Class Imbalance:} XGBoost and Random Forest, combined with class weighting, showed the best handling of imbalanced classes. Naive Bayes was most sensitive to class imbalance, frequently over-predicting majority diseases.
+
+\textbf{Recommendation:} For a production healthcare booking system, XGBoost or Random Forest is recommended as the primary classifier due to their superior performance. However, a Logistic Regression model should be maintained as an interpretable baseline for clinical validation and regulatory compliance purposes.
+
+\section{Limitations and Concerns}
+\label{sec:limitations}
+
+This study has several limitations that should be considered when interpreting the results.
+
+\textbf{Cross-validation vs. External Validation:} The classifiers were evaluated using stratified 5-fold cross-validation and a held-out test set from the same data distribution. No external validation on an independent clinical dataset was performed. This is the most significant limitation, as models that perform well on held-out data from the same source may not generalize to patient populations with different demographic compositions, symptom reporting patterns, or disease prevalence rates. The high accuracy values reported should therefore be interpreted as upper bounds on real-world performance.
+
+\textbf{Dataset Representativeness:} Both datasets are publicly available Kaggle datasets compiled from various medical sources. They may not accurately represent the symptom-disease distributions encountered in actual clinical practice. In particular, the binary symptom representation does not capture symptom severity, duration, or the temporal progression of symptoms, all of which are important for clinical diagnosis.
+
+\textbf{Simplified Problem Formulation:} The multi-class classification formulation assumes that each patient has exactly one disease, which is a simplification. In reality, patients frequently present with comorbidities (multiple concurrent conditions), and the symptom overlap between diseases can be more complex than what is captured in these datasets.
+
+\textbf{Absence of Demographic Features:} The datasets contain only symptom information and do not include patient demographics (age, sex, medical history) that are routinely used in clinical diagnosis. The inclusion of such features would likely improve predictive performance but was beyond the scope of the available data.
+
+\textbf{Hyperparameter Sensitivity:} While grid search was used for hyperparameter tuning, the search spaces were finite and may not have identified the globally optimal configuration for each classifier. More exhaustive search methods (e.g., Bayesian optimization) could potentially yield marginally better results.
+
+\section{Ethical Considerations}
+\label{sec:ethics}
+
+Deploying machine learning models for disease prediction in healthcare raises significant ethical and regulatory concerns that must be addressed before any practical implementation.
+
+\textbf{Patient Safety:} Misclassifications can lead to incorrect medical decisions. A false negative for a serious condition could result in delayed treatment, while a false positive could cause unnecessary anxiety and medical procedures. Any deployment must include clear disclaimers that model predictions are preliminary assessments, not medical diagnoses, and that professional medical consultation remains essential.
+
+\textbf{Data Protection:} Health data is classified as a special category of personal data under the General Data Protection Regulation \citep{GDPR2016}, requiring explicit consent and additional safeguards for processing. A deployed system would need to implement data minimization, purpose limitation, and appropriate security measures.
+
+\textbf{EU AI Act Compliance:} The EU Artificial Intelligence Act \citep{EUAI2024} classifies AI systems intended for medical purposes as high-risk. This classification imposes requirements including risk assessment documentation, human oversight mechanisms, transparency obligations, and conformity assessments before market placement. A healthcare booking system incorporating ML-based disease prediction would fall under these requirements.
+
+\textbf{Bias and Fairness:} The training datasets may contain biases related to the populations from which the data was collected. If certain demographic groups are underrepresented, the model may perform worse for those groups, perpetuating healthcare disparities. Fairness audits across demographic subgroups would be necessary before deployment.
+
+\section{Practical Deployment Considerations}
+\label{sec:deployment}
+
+Translating the experimental results of this thesis into a deployed healthcare booking system involves several practical considerations.
+
+\textbf{System Architecture:} A practical system would present patients with a symptom checklist, encode the selected symptoms as a binary vector, pass the vector through the trained classifier, and present the predicted disease category along with a confidence score. The system could then map the predicted disease to the appropriate medical specialty and suggest booking options.
+
+\textbf{Confidence Thresholds:} Not all predictions should be acted upon equally. The system should define a confidence threshold below which the prediction is considered unreliable and the patient is advised to consult a general practitioner rather than a specialist. This threshold should be calibrated to balance false referrals against missed diagnoses.
+
+\textbf{Human-in-the-Loop:} Given the limitations discussed in Section~\ref{sec:limitations}, any deployed system should maintain a human-in-the-loop architecture where the ML prediction serves as a suggestion that can be overridden by a healthcare professional. The model should augment, not replace, clinical judgment.
+
+\textbf{Monitoring and Maintenance:} Disease prevalence and symptom patterns change over time (concept drift). A deployed model would require periodic retraining on updated data and continuous monitoring of performance metrics to detect degradation. Automated alerts should be triggered when performance drops below acceptable thresholds.

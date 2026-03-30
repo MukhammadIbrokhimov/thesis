@@ -1,0 +1,52 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{Background and Motivation}
+\label{sec:background}
+
+The growing demand for healthcare services worldwide has placed significant pressure on medical systems, leading to long waiting times, delayed diagnoses, and inefficient resource allocation. According to the World Health Organization, timely access to appropriate healthcare remains a critical challenge, particularly in primary care settings where patients often struggle to identify the correct medical specialist for their symptoms \citep{WHO2021}. This challenge is compounded by the increasing complexity of diseases and the limited availability of general practitioners who can serve as effective gatekeepers in the referral process.
+
+Machine learning has emerged as a promising approach to support clinical decision-making by leveraging large volumes of patient data to identify patterns that may not be immediately apparent to human practitioners \citep{Rajpurkar2022}. In particular, symptom-based disease prediction models have the potential to assist both patients and healthcare providers by offering preliminary assessments based on reported symptoms. Such models could serve as decision-support tools that help patients navigate the healthcare system more effectively, for instance by suggesting whether a visit to a general practitioner, a specialist, or an emergency department is most appropriate.
+
+Several machine learning classifiers have been applied to the problem of disease prediction from symptoms, including traditional approaches such as Naive Bayes and Logistic Regression, as well as more recent ensemble methods like Random Forest and XGBoost \citep{Uddin2019}. However, the comparative performance of these methods on symptom-based datasets remains insufficiently explored in the literature, particularly when considering practical deployment scenarios where interpretability, computational efficiency, and robustness to class imbalance are important considerations.
+
+\section{Problem Statement}
+\label{sec:problem_statement}
+
+Despite the availability of multiple machine learning algorithms suitable for multi-class classification tasks, there is a lack of systematic comparison of these methods specifically for symptom-based disease prediction. Existing studies often evaluate a single model or a narrow set of classifiers, making it difficult for practitioners to select the most appropriate approach for a given clinical context. Furthermore, many studies do not adequately address challenges such as class imbalance, which is inherent in medical datasets where some diseases are far more prevalent than others.
+
+\section{Research Question}
+\label{sec:research_question}
+
+This thesis addresses the following research question:
+
+\begin{quote}
+\textit{How do Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, and XGBoost compare in terms of accuracy, precision, recall, and F1-score when applied to symptom-based disease prediction, and which method offers the best trade-off between predictive performance and practical applicability for healthcare decision support?}
+\end{quote}
+
+\section{Objectives}
+\label{sec:objectives}
+
+To answer this research question, the thesis pursues the following objectives:
+
+\begin{enumerate}
+    \item Conduct a literature review of machine learning approaches for symptom-based disease prediction, identifying current methods, datasets, and evaluation practices.
+    \item Describe and preprocess two publicly available Kaggle datasets for symptom-based disease classification.
+    \item Implement and train five machine learning classifiers --- Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, and XGBoost --- using consistent experimental conditions.
+    \item Evaluate and compare the classifiers using standard metrics (accuracy, precision, recall, F1-score) and analyze error patterns through confusion matrices and feature importance analysis.
+    \item Discuss the practical implications of the results for healthcare booking and triage decision support.
+\end{enumerate}
+
+\section{Scope and Limitations}
+\label{sec:scope}
+
+This thesis focuses exclusively on predicting disease categories from binary symptom vectors. It does not address specialist mapping, treatment recommendation, or real-time clinical deployment. The evaluation is limited to two publicly available datasets and does not involve clinical validation with real patient data. The implications for healthcare booking are discussed at a conceptual level rather than through a deployed system.
+
+\section{Thesis Structure}
+\label{sec:thesis_structure}
+
+The remainder of this thesis is organized as follows. Chapter~\ref{ch:literature_review} reviews the relevant literature on machine learning in healthcare and symptom-based disease prediction. Chapter~\ref{ch:data_description} describes the two datasets used in this study and the preprocessing steps applied. Chapter~\ref{ch:methodology} presents the methodology, including the five classifiers, the handling of class imbalance, and the evaluation metrics. Chapter~\ref{ch:results} reports the experimental results. Chapter~\ref{ch:discussion} discusses the findings, limitations, and ethical considerations. Finally, Chapter~\ref{ch:conclusion} summarizes the contributions and outlines directions for future work.
+
+\vspace{1cm}
+
+\noindent\textbf{Thesis Statement:} This thesis demonstrates that ensemble methods, specifically Random Forest and XGBoost, consistently outperform traditional classifiers such as Naive Bayes, Logistic Regression, and Support Vector Machine for symptom-based disease prediction across two datasets of different scales. However, the choice of the most suitable model depends not only on predictive accuracy but also on practical considerations including interpretability, computational cost, and robustness to class imbalance, all of which are critical for real-world healthcare decision support.

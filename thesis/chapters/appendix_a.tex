@@ -1,0 +1,75 @@
+\chapter{Supplementary Materials}
+\label{app:supplementary}
+
+\section{Preprocessing Pipeline}
+\label{app:preprocessing}
+
+The following steps were applied identically to both datasets:
+
+\begin{enumerate}
+    \item Load CSV data using \texttt{pandas.read\_csv()}.
+    \item Remove duplicate records.
+    \item Impute missing symptom values with 0 (symptom absent).
+    \item Encode disease labels using \texttt{sklearn.preprocessing.LabelEncoder}.
+    \item Split data into 80\% training / 20\% test using \texttt{train\_test\_split} with \texttt{stratify=y}.
+    \item Apply \texttt{StandardScaler} to features for Logistic Regression and SVM only.
+    \item Perform stratified 5-fold cross-validation for hyperparameter tuning.
+\end{enumerate}
+
+\section{Hyperparameter Search Spaces}
+\label{app:hyperparameters}
+
+Table~\ref{tab:hyperparameters} documents the hyperparameter search spaces used for grid search and the optimal values selected for each classifier.
+
+\begin{table}[H]
+\centering
+\caption{Hyperparameter search spaces and selected optimal values}
+\label{tab:hyperparameters}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Classifier} & \textbf{Parameter} & \textbf{Search Space} & \textbf{Selected} \\
+\midrule
+Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & TODO \\
+\midrule
+\multirow{2}{*}{Logistic Regression} & C & \{0.01, 0.1, 1, 10, 100\} & TODO \\
+& solver & \{lbfgs, saga\} & TODO \\
+\midrule
+\multirow{2}{*}{SVM (RBF)} & C & \{0.1, 1, 10, 100\} & TODO \\
+& gamma & \{scale, auto, 0.01, 0.1\} & TODO \\
+\midrule
+\multirow{3}{*}{Random Forest} & n\_estimators & \{100, 200, 500\} & TODO \\
+& max\_depth & \{10, 20, 50, None\} & TODO \\
+& min\_samples\_split & \{2, 5, 10\} & TODO \\
+\midrule
+\multirow{4}{*}{XGBoost} & n\_estimators & \{100, 200, 500\} & TODO \\
+& max\_depth & \{3, 6, 10\} & TODO \\
+& learning\_rate & \{0.01, 0.1, 0.3\} & TODO \\
+& subsample & \{0.8, 1.0\} & TODO \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Software Versions}
+\label{app:software}
+
+\begin{table}[H]
+\centering
+\caption{Software environment}
+\label{tab:software}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Software} & \textbf{Version} \\
+\midrule
+Python     & 3.11.x \\
+scikit-learn & 1.x.x \\
+XGBoost    & 2.x.x \\
+pandas     & 2.x.x \\
+NumPy      & 1.x.x \\
+matplotlib & 3.x.x \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% TODO: Replace version numbers with actual values from your environment.
+% Run: python -c "import sklearn, xgboost, pandas, numpy, matplotlib; print(sklearn.__version__, xgboost.__version__, pandas.__version__, numpy.__version__, matplotlib.__version__)"
