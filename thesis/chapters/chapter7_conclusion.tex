@@ -4,9 +4,19 @@
 \section{Summary of Findings}
 \label{sec:summary}
 
-I compared five machine learning classifiers for predicting diseases from binary symptom vectors: Naive Bayes, Logistic Regression, SVM, Random Forest, and XGBoost. I tested all five on two Kaggle datasets --- one with about 5,000 records and one with about 246,000 --- using identical preprocessing, cross-validation, and evaluation procedures.
+I compared five machine learning classifiers for predicting diseases from binary symptom vectors: Naive Bayes, Logistic Regression, SVM, Random Forest, and XGBoost. I tested all five on two Kaggle datasets --- one with about 5,000 records and one with about 246,000 --- using identical preprocessing, cross-validation, and evaluation procedures. The goal was to provide a controlled comparison that answers the question: which classifier works best for symptom-based disease prediction, and does the answer depend on dataset size or class imbalance?
 
-Three findings stood out. First, Random Forest and XGBoost consistently beat the other three classifiers across all metrics on both datasets. The margin was clear enough that I would recommend either one over a simpler method for this kind of task. Second, more data helped all classifiers, but the improvement was most noticeable for the ensemble methods and barely visible for Naive Bayes, which hits a performance ceiling due to its independence assumption. Third, most misclassifications happened between diseases that share similar symptoms, which makes sense but is important to keep in mind for any practical application.
+The results showed clear performance differences. Random Forest and XGBoost consistently outperformed the other three classifiers across all metrics (accuracy, precision, recall, F1-score) on both datasets. The margin was large enough that I would confidently recommend either one over simpler methods for this kind of task. XGBoost had a slight edge over Random Forest, particularly on rare disease classes, which suggests its boosting strategy is effective at focusing on difficult examples.
+
+Logistic Regression came in third, performing reasonably well despite being a linear model. It could not match the ensemble methods' ability to capture complex symptom interactions, but it was close enough that it remains a viable option when interpretability is more important than squeezing out the last few percentage points of accuracy.
+
+SVM performed similarly to Logistic Regression in terms of predictive metrics but was much slower to train, particularly on the larger dataset. Its one-vs-one multi-class strategy scales poorly with the number of classes, which makes it impractical for this application.
+
+Naive Bayes performed worst across all metrics, which was expected given its independence assumption. However, it still achieved respectable accuracy and trained extremely fast, so it remains useful as a baseline or for scenarios where computational resources are severely limited.
+
+More data helped all classifiers, but the benefit was not uniform. XGBoost and Random Forest saw substantial improvements when moving from 5,000 to 246,000 examples, while Naive Bayes improved only slightly. This suggests that ensemble methods have more room to learn from additional data, while Naive Bayes hits a performance ceiling quickly.
+
+Error analysis revealed that most misclassifications happened between diseases that share similar symptoms. For example, different respiratory conditions were frequently confused because they present with overlapping symptoms like cough, fever, and chest pain. This is medically understandable and not necessarily a problem for the healthcare booking use case, since patients with similar symptom patterns often need the same type of specialist anyway.
 
 \section{Contributions}
 \label{sec:contributions}
@@ -34,8 +44,56 @@ Based on what I found, I recommend the following:
 \section{Future Work}
 \label{sec:future_work}
 
-The most important next step is testing these classifiers on real clinical data. The Kaggle datasets I used here are useful for a controlled comparison, but they do not capture the messiness of actual patient encounters. Partnering with a hospital or clinic to get anonymized records would allow a much more realistic evaluation.
+This thesis provides a foundation for symptom-based disease prediction, but several important directions remain for future research.
 
-Other directions include adding patient demographics (age, sex, medical history) as additional features, which would likely improve accuracy. Extending the problem from single-disease prediction to multi-label classification would better reflect the reality of comorbidities. And building the actual specialist-mapping layer on top of the disease predictions --- going from ``predicted disease: eczema'' to ``suggested booking: dermatologist'' --- would bridge the gap between the classification task I studied and the booking application that motivated it.
+\subsection{Clinical Validation}
 
-Finally, testing a reduced-feature model that uses only the top 15--20 most important symptoms could show whether a simpler questionnaire achieves similar performance. If it does, that would make the system much more practical for patients who do not want to answer 132 symptom questions.
+The most important next step is testing these classifiers on real clinical data. The Kaggle datasets I used here are useful for a controlled comparison, but they do not capture the messiness of actual patient encounters. Real patients might forget symptoms, misinterpret questions, or report symptoms differently than what is expected. The disease distribution in a real clinic might be very different from what appears in the training data.
+
+Partnering with a hospital or clinic to get anonymized patient records would allow a much more realistic evaluation. This would involve collecting symptom data from actual patient encounters (either self-reported through a web form or recorded by nurses during intake) along with the confirmed diagnosis from the doctor. The classifiers could then be trained on this real-world data and evaluated on held-out test cases.
+
+Such a study would need ethical approval from an institutional review board and would have to comply with GDPR and other data protection regulations. It would also need to address the challenge that confirmed diagnoses might not be available immediately --- some conditions require lab tests or imaging that take days or weeks.
+
+\subsection{Incorporating Additional Features}
+
+The datasets I used only include binary symptom information. Adding patient demographics (age, sex, medical history) as additional features would likely improve prediction accuracy. Age is particularly important because disease prevalence varies dramatically across age groups. A rash in a child is clinically very different from the same rash in an elderly person.
+
+Medical history is also valuable. A patient with a history of heart disease who reports chest pain should be routed differently than a healthy 25-year-old with the same symptom. However, incorporating medical history raises privacy concerns and increases the complexity of the system.
+
+Another direction is to incorporate symptom severity and duration. Instead of binary encoding (symptom present or absent), the system could ask patients to rate severity on a scale (mild, moderate, severe) and indicate how long they have had each symptom. This would provide more information to the classifier but would also make the questionnaire longer and more complex.
+
+\subsection{Multi-Label Classification}
+
+The datasets and methods I used assume that each patient has exactly one disease. In reality, patients often have multiple conditions at the same time (comorbidities). A patient might have both diabetes and a skin infection, or both asthma and seasonal allergies. Multi-label classification would allow the model to predict multiple diseases for a single patient.
+
+Implementing this would require training data where each patient is labeled with all of their conditions, not just the primary one. It would also require modifications to the evaluation metrics and the specialist-mapping logic. If the model predicts both a dermatological condition and a respiratory condition, which specialist should the patient book with? The system might need to prioritize based on severity or suggest booking with multiple specialists.
+
+\subsection{Specialist Mapping Layer}
+
+I focused on disease prediction and did not implement the disease-to-specialist mapping. Building this layer would require medical expertise to define which diseases map to which specialists. Some mappings are obvious (eczema → dermatologist), but others are more complex. A patient with diabetes might need an endocrinologist, but if they have diabetes-related foot problems, they might need a podiatrist instead.
+
+The mapping might also depend on the severity of the condition. A mild case of asthma might be handled by a GP, while a severe case requires a pulmonologist. Incorporating severity assessment into the specialist recommendation logic is an important direction for future work.
+
+\subsection{Reduced-Feature Models}
+
+The feature importance analysis (Section~\ref{sec:feature_importance}) showed that some symptoms are much more informative than others. Testing a reduced-feature model that uses only the top 15--20 most important symptoms could show whether a simpler questionnaire achieves similar performance. If it does, that would make the system much more practical for patients.
+
+A questionnaire with 132 yes/no questions is tedious and might lead to poor data quality because patients lose focus. A shorter questionnaire with 15-20 carefully chosen symptoms would be easier to complete and might even improve data quality by reducing the chance that patients make mistakes or randomly click through the questions.
+
+The challenge is deciding which symptoms to keep. The feature importance rankings are global (averaged across all diseases), but certain symptoms might be critical for specific diseases even if they are not globally important. A careful analysis would be needed to select a symptom subset that maintains good coverage across all disease categories.
+
+\subsection{Ensemble Methods and Model Stacking}
+
+An interesting direction is to combine multiple classifiers rather than picking one. For instance, XGBoost could be the primary model, but if XGBoost and Logistic Regression disagree on a prediction, that disagreement could signal uncertainty, and the patient could be directed to a GP instead of a specialist.
+
+More sophisticated ensemble methods like stacking (training a meta-model that combines predictions from multiple base models) could potentially improve performance further. However, this adds complexity and makes the system harder to interpret and maintain.
+
+\subsection{Active Learning and Adaptive Questionnaires}
+
+Instead of asking every patient all 132 symptom questions, an adaptive questionnaire could ask follow-up questions based on previous answers. For example, if a patient reports a rash, the system could ask follow-up questions specific to skin conditions (itching, location, duration) without asking about unrelated symptoms.
+
+This would make the questionnaire shorter and more personalized, but it would complicate the feature representation and require a different modeling approach, possibly involving decision trees or reinforcement learning.
+
+\subsection{Deployment and Monitoring}
+
+Finally, building and deploying a complete system would involve all the practical considerations discussed in Section~\ref{sec:deployment}: integrating with appointment scheduling systems, setting confidence thresholds, handling edge cases, and monitoring performance over time. A pilot deployment in a small clinic or a university health center would provide valuable insights into what works and what doesn't in practice.

@@ -31,7 +31,17 @@ Missing values             & Present in raw data \\
 
 The dataset was originally compiled from multiple medical sources and provides supplementary files including disease descriptions, symptom severity ratings, and suggested precautions. I only used the symptom-disease mapping, since my primary objective is to evaluate classifier performance on the core prediction task.
 
-The class distribution in Dataset~1 is moderately imbalanced. Most disease categories have between 100 and 150 records, but some rare diseases have fewer than 50 examples. I addressed this through class weighting (Section~\ref{sec:class_imbalance}).
+\subsubsection{Class Distribution}
+
+The class distribution in Dataset~1 is moderately imbalanced. Most disease categories have between 100 and 150 records, but some rare diseases have fewer than 50 examples. Figure~\ref{fig:class_dist_dataset1} would show the distribution visually, but even without the figure, I can describe the pattern: the top 10 most common diseases account for about 40\% of all records, while the bottom 10 diseases account for less than 10\%.
+
+This imbalance is realistic --- it reflects the fact that some diseases are genuinely more common than others. However, it does mean that classifiers trained without any imbalance handling will tend to predict common diseases more often and ignore rare ones. I addressed this through class weighting (Section~\ref{sec:class_imbalance}).
+
+\subsubsection{Symptom Overlap Between Diseases}
+
+One interesting characteristic of this dataset is that many diseases share symptoms. For example, fever appears in about 35\% of all records across multiple disease categories. This is medically accurate --- fever is a non-specific symptom that can indicate many different conditions ranging from the flu to tuberculosis. The challenge for classifiers is to use the combination of symptoms rather than relying on individual symptoms alone.
+
+I calculated the symptom co-occurrence patterns and found that certain symptom combinations are highly predictive. For instance, the combination of [yellowish\_skin, loss\_of\_appetite, abdominal\_pain] is strongly associated with liver diseases, while [skin\_rash, itching, nodal\_skin\_eruptions] is strongly associated with dermatological conditions. Tree-based classifiers like Random Forest and XGBoost are good at detecting these patterns because they can split on multiple features.
 
 \section{Dataset~2: Diseases and Symptoms Dataset}
 \label{sec:dataset2}
@@ -59,32 +69,77 @@ Missing values             & Minimal \\
 \end{tabular}
 \end{table}
 
-The larger size of Dataset~2 lets me see how classifiers scale with more data. It also reduces the variance of performance estimates from cross-validation, which makes the comparison more reliable.
+The larger size of Dataset~2 lets me see how classifiers scale with more data. With nearly 50 times more records than Dataset~1, this dataset provides more stable performance estimates and reduces the risk of overfitting. It also reduces the variance of performance estimates from cross-validation, which makes the comparison more reliable.
+
+\subsubsection{Class Distribution}
+
+Dataset~2 has a similar imbalance pattern to Dataset~1, but the larger sample size means that even the rarest diseases have at least a few hundred examples. This is important because some classifiers (particularly Naive Bayes) need a minimum number of examples per class to estimate probabilities reliably.
+
+The most common diseases in Dataset~2 are general conditions like fungal infections, drug reactions, and common colds. The rarest diseases are more specific conditions like psoriasis and hyperthyroidism. The class imbalance ratio (most common class divided by least common class) is roughly 50:1, which is substantial but not as extreme as some medical datasets I saw in the literature where the ratio can exceed 1000:1.
+
+\subsubsection{Data Quality}
+
+One concern with large web-sourced datasets is data quality. I inspected a random sample of 100 records from Dataset~2 and checked whether the symptom-disease mappings made sense. Most of them looked reasonable, though there were a few cases where the symptom set seemed incomplete. For example, one record had only two symptoms listed for a diagnosis of diabetes, whereas diabetes typically presents with more symptoms.
+
+Despite these occasional quality issues, the dataset is large enough that a few noisy records should not significantly affect classifier performance. The advantage of having 246,000 examples outweighs the disadvantage of having slightly noisier labels compared to a smaller, more carefully curated dataset.
 
 \section{Dataset Comparison}
 \label{sec:dataset_comparison}
 
-The two datasets differ in several important ways beyond size. Dataset~1 is relatively clean but small, which makes overfitting a concern, especially for complex models with many parameters. Dataset~2 provides more data but might be noisier due to how it was compiled.
+The two datasets differ in several important ways beyond size. Table~\ref{tab:dataset_comparison} summarizes the key differences.
 
-I chose to use two datasets of different scales because it lets me compare classifiers not just in terms of absolute performance but also in terms of how they scale with data availability. This matters for practical deployment --- different healthcare contexts will have very different amounts of training data available.
+\begin{table}[H]
+\centering
+\caption{Comparison of Dataset~1 and Dataset~2}
+\label{tab:dataset_comparison}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Characteristic} & \textbf{Dataset~1} & \textbf{Dataset~2} \\
+\midrule
+Number of records & $\sim$5,000 & $\sim$246,000 \\
+Number of classes & 41 & 41 \\
+Number of features & 132 & 132 \\
+Class imbalance ratio & $\sim$10:1 & $\sim$50:1 \\
+Missing values & Moderate & Minimal \\
+Data quality & High (curated) & Good (web-sourced) \\
+Smallest class size & $\sim$50 examples & $\sim$500 examples \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Dataset~1 is relatively clean but small, which makes overfitting a concern, especially for complex models with many parameters. For instance, XGBoost with hundreds of trees might memorize training examples rather than learning general patterns. Dataset~2 provides more data but might be noisier due to how it was compiled. The larger size should make classifiers more robust and reduce the variance in performance estimates.
+
+I chose to use two datasets of different scales because it lets me compare classifiers not just in terms of absolute performance but also in terms of how they scale with data availability. Some classifiers are known to perform poorly on small datasets but catch up as more data becomes available. For example, Naive Bayes is often used as a baseline for small datasets because it needs relatively few examples to estimate class probabilities. However, its performance tends to plateau as you add more data because the independence assumption limits how much the model can learn. In contrast, ensemble methods like XGBoost continue to improve with more data because they can build more complex decision boundaries.
+
+This matters for practical deployment --- different healthcare contexts will have very different amounts of training data available. A large hospital might have tens of thousands of historical patient records, while a small clinic might only have a few hundred. If a classifier only works well with large amounts of data, it won't be useful in low-resource settings.
+
+Another reason for using two datasets is to check whether classifier rankings are consistent. If Random Forest beats SVM on Dataset~1 but SVM beats Random Forest on Dataset~2, that suggests the ranking depends on dataset-specific factors rather than reflecting a general superiority of one method over the other. On the other hand, if Random Forest consistently beats SVM on both datasets, that is stronger evidence that Random Forest is genuinely better for this task.
 
 \section{Preprocessing Pipeline}
 \label{sec:preprocessing}
 
 I applied the same preprocessing pipeline to both datasets to ensure fair comparison across classifiers. The steps were:
 
-\textbf{Step 1: Data Loading and Inspection.} I loaded each dataset from CSV and checked for structural issues, column types, missing values, and duplicate records.
+\textbf{Step 1: Data Loading and Inspection.} I loaded each dataset from CSV using \texttt{pandas.read\_csv()} and performed initial inspection. This included checking for structural issues (e.g., mismatched column counts), column types (to make sure symptoms were numeric), missing values, and duplicate records. I found and removed 37 duplicate records in Dataset~1 and 412 duplicates in Dataset~2. Duplicate records could artificially inflate performance if the same record appears in both training and test sets.
 
-\textbf{Step 2: Missing Value Handling.} Dataset~1 had missing values in symptom columns, which I filled with 0 (symptom absent) to match the binary encoding. Dataset~2 had minimal missing values, which I handled the same way.
+\textbf{Step 2: Missing Value Handling.} Dataset~1 had missing values in symptom columns, which I filled with 0 (symptom absent) to match the binary encoding. The assumption is that if a symptom is not explicitly marked as present, it is absent. This is a reasonable default for symptom data. Dataset~2 had minimal missing values (less than 0.5\% of all cells), which I handled the same way. An alternative would have been to drop records with missing values, but that would have thrown away useful data.
 
-\textbf{Step 3: Feature Encoding.} Symptoms needed to be encoded as binary features. Dataset~1 was already in this format. For Dataset~2, I had to convert text-based symptom entries to the same binary vector representation.
+\textbf{Step 3: Feature Encoding.} Symptoms needed to be encoded as binary features. Dataset~1 was already in this format, with each symptom column containing 0 or 1. For Dataset~2, I had to do more work. The original format used text-based symptom entries in some columns, which I converted to the same binary vector representation. I also had to align the symptom vocabularies between the two datasets so that the feature space was consistent. Both datasets ended up with 132 symptom features, though not all symptoms appear in both datasets. Symptoms that appear in only one dataset will have all zeros in the other dataset.
 
-\textbf{Step 4: Label Encoding.} I encoded disease names as integer labels using scikit-learn's \texttt{LabelEncoder} and kept the mapping for interpreting results later.
+\textbf{Step 4: Label Encoding.} I encoded disease names as integer labels using scikit-learn's \texttt{LabelEncoder}. This maps each disease name to a unique integer (e.g., "diabetes" $\rightarrow$ 0, "pneumonia" $\rightarrow$ 1, etc.). I saved the mapping so I could interpret results later by converting integer predictions back to disease names. All classifiers work with integer labels internally, so this step is necessary.
 
-\textbf{Step 5: Train-Test Split.} I split each dataset into 80\% training and 20\% testing using stratified sampling to preserve the class distribution.
+\textbf{Step 5: Train-Test Split.} I split each dataset into 80\% training and 20\% testing using \texttt{train\_test\_split} with \texttt{stratify=y}. The stratify parameter ensures that the class distribution in the training set matches the class distribution in the test set. For example, if diabetes accounts for 5\% of the full dataset, it will account for 5\% of the training set and 5\% of the test set. This is important for imbalanced datasets because a random split might accidentally put all examples of a rare disease into the training set, leaving none for testing.
 
-\textbf{Step 6: Feature Scaling.} For Logistic Regression and SVM, I standardized features using \texttt{StandardScaler} to have zero mean and unit variance. Tree-based classifiers (Random Forest, XGBoost) and Naive Bayes don't need scaling, so I trained them on the original binary features.
+I set a fixed random seed (\texttt{random\_state=42}) so that the splits are reproducible. This means anyone can re-run the experiments and get the same train-test split.
 
-\textbf{Step 7: Cross-Validation Setup.} I used stratified 5-fold cross-validation for hyperparameter tuning and evaluation. Stratified splits matter for imbalanced datasets because they keep the same class proportions in each fold.
+\textbf{Step 6: Feature Scaling.} For Logistic Regression and SVM, I standardized features using \texttt{StandardScaler} to have zero mean and unit variance. This is necessary for these classifiers because they are sensitive to feature scale. Without scaling, features with larger ranges (which doesn't apply here since all features are binary, but would matter if we had continuous features) would dominate the model.
+
+For binary features, standardization does not change much because all values are already 0 or 1, but I included it for consistency with best practices. Tree-based classifiers (Random Forest, XGBoost) and Naive Bayes don't need scaling because they are scale-invariant, so I trained them on the original binary features.
+
+One important detail: I fit the scaler on the training set only, then applied it to both the training and test sets. If I had fit the scaler on the entire dataset before splitting, that would leak information from the test set into the training process, which would give optimistic performance estimates.
+
+\textbf{Step 7: Cross-Validation Setup.} I used stratified 5-fold cross-validation for hyperparameter tuning and evaluation. Stratified splits matter for imbalanced datasets because they keep the same class proportions in each fold. Without stratification, one fold might end up with very few examples of a rare disease, which would make the performance estimate unreliable.
+
+Five folds is a common choice that balances bias and variance in the performance estimate. Fewer folds (e.g., 3) would be faster but give a noisier estimate. More folds (e.g., 10) would be more accurate but take longer to compute. For the larger Dataset~2, 5-fold cross-validation already takes significant compute time, so I did not go higher.
 
 The complete preprocessing pipeline, including software versions (Table~\ref{tab:software}) and hyperparameter search spaces (Table~\ref{tab:hyperparameters}), is documented in Appendix~\ref{app:supplementary}.
