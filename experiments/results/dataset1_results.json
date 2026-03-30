@@ -1,0 +1,183 @@
+{
+  "Naive Bayes": {
+    "accuracy": 0.9836065573770492,
+    "precision": 0.991869918699187,
+    "recall": 0.9878048780487805,
+    "f1": 0.9869918699186992,
+    "best_params": {
+      "alpha": 0.01
+    },
+    "train_time_seconds": 2.39
+  },
+  "Logistic Regression": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "best_params": {
+      "C": 0.01,
+      "solver": "lbfgs"
+    },
+    "train_time_seconds": 5.09
+  },
+  "SVM": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "best_params": {
+      "C": 1,
+      "gamma": 0.01
+    },
+    "train_time_seconds": 0.18
+  },
+  "Random Forest": {
+    "accuracy": 0.9836065573770492,
+    "precision": 0.991869918699187,
+    "recall": 0.9878048780487805,
+    "f1": 0.9869918699186992,
+    "best_params": {
+      "max_depth": 10,
+      "min_samples_split": 2,
+      "n_estimators": 100
+    },
+    "train_time_seconds": 8.89,
+    "top_features": [
+      {
+        "feature": "muscle_pain",
+        "importance": 0.01619993869154088
+      },
+      {
+        "feature": "extra_marital_contacts",
+        "importance": 0.015274270517798854
+      },
+      {
+        "feature": "chills",
+        "importance": 0.01525803867997432
+      },
+      {
+        "feature": "mild_fever",
+        "importance": 0.014760626071823631
+      },
+      {
+        "feature": "bloody_stool",
+        "importance": 0.013589666914591063
+      },
+      {
+        "feature": "irritability",
+        "importance": 0.013410563618420497
+      },
+      {
+        "feature": "bladder_discomfort",
+        "importance": 0.013244206903398304
+      },
+      {
+        "feature": "blood_in_sputum",
+        "importance": 0.013081691490956815
+      },
+      {
+        "feature": "pus_filled_pimples",
+        "importance": 0.012847147091896218
+      },
+      {
+        "feature": "rusty_sputum",
+        "importance": 0.012839841769172957
+      },
+      {
+        "feature": "movement_stiffness",
+        "importance": 0.012627238698263104
+      },
+      {
+        "feature": "stomach_bleeding",
+        "importance": 0.012472954264448577
+      },
+      {
+        "feature": "excessive_hunger",
+        "importance": 0.012254447669769289
+      },
+      {
+        "feature": "cramps",
+        "importance": 0.011667798216688811
+      },
+      {
+        "feature": "depression",
+        "importance": 0.011654277069150431
+      }
+    ]
+  },
+  "XGBoost": {
+    "accuracy": 0.9508196721311475,
+    "precision": 0.9227642276422763,
+    "recall": 0.9390243902439024,
+    "f1": 0.9252032520325204,
+    "best_params": {
+      "learning_rate": 0.3,
+      "max_depth": 3,
+      "n_estimators": 500,
+      "subsample": 0.8
+    },
+    "train_time_seconds": 25.39,
+    "top_features": [
+      {
+        "feature": "phlegm",
+        "importance": 0.08226107805967331
+      },
+      {
+        "feature": "excessive_hunger",
+        "importance": 0.04419717565178871
+      },
+      {
+        "feature": "acute_liver_failure",
+        "importance": 0.028915826231241226
+      },
+      {
+        "feature": "irritability",
+        "importance": 0.02528674341738224
+      },
+      {
+        "feature": "muscle_weakness",
+        "importance": 0.02314753085374832
+      },
+      {
+        "feature": "mild_fever",
+        "importance": 0.02045702002942562
+      },
+      {
+        "feature": "lethargy",
+        "importance": 0.019668711349368095
+      },
+      {
+        "feature": "restlessness",
+        "importance": 0.019511856138706207
+      },
+      {
+        "feature": "swelled_lymph_nodes",
+        "importance": 0.018557310104370117
+      },
+      {
+        "feature": "weight_loss",
+        "importance": 0.01758081652224064
+      },
+      {
+        "feature": "knee_pain",
+        "importance": 0.017236392945051193
+      },
+      {
+        "feature": "mood_swings",
+        "importance": 0.016678666695952415
+      },
+      {
+        "feature": "muscle_pain",
+        "importance": 0.01580195501446724
+      },
+      {
+        "feature": "rusty_sputum",
+        "importance": 0.015439935959875584
+      },
+      {
+        "feature": "back_pain",
+        "importance": 0.015099965035915375
+      }
+    ]
+  }
+}
