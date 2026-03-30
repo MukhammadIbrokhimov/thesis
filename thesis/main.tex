@@ -1,0 +1,107 @@
+\documentclass[12pt, a4paper, oneside]{report}
+
+% ============================================================
+% Page Layout (per UE requirements: 2cm L, 4cm R, 2.5cm T, 3cm B)
+% ============================================================
+\usepackage[left=2cm, right=4cm, top=2.5cm, bottom=3cm]{geometry}
+
+% ============================================================
+% Font & Encoding
+% ============================================================
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}          % Times New Roman clone
+
+% ============================================================
+% Core Packages
+% ============================================================
+\usepackage{graphicx}           % Figures
+\usepackage{booktabs}           % Professional tables
+\usepackage{amsmath, amssymb}   % Math
+\usepackage{hyperref}           % Clickable links
+\usepackage{natbib}             % Harvard-style citations
+\usepackage{setspace}           % Line spacing
+\usepackage{parskip}            % Paragraph spacing
+\usepackage{indentfirst}        % Indent first paragraph
+\usepackage{float}              % Figure placement
+\usepackage{caption}            % Caption formatting
+\usepackage{enumitem}           % List customization
+\usepackage{xcolor}             % Colors (for hyperref)
+\usepackage{listings}           % Code listings
+\usepackage{appendix}           % Appendix support
+\usepackage{longtable}          % Multi-page tables
+\usepackage{multirow}           % Table cell merging
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{fancyhdr}           % Headers/footers
+
+% ============================================================
+% Formatting
+% ============================================================
+\setlength{\parindent}{1cm}     % 1cm paragraph indent (per UE)
+\onehalfspacing                 % 1.5 line spacing
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue,
+    pdfauthor={Mukhammad Ibrokhimov},
+    pdftitle={Comparing Machine Learning Methods for Predicting Diseases from Symptoms in Healthcare}
+}
+
+% Header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% ============================================================
+% Document Metadata
+% ============================================================
+\title{Comparing Machine Learning Methods for Predicting Diseases from Symptoms in Healthcare}
+\author{Mukhammad Ibrokhimov}
+\date{\today}
+
+% ============================================================
+\begin{document}
+
+% --- Cover Page ---
+\input{chapters/coverpage}
+
+% --- Statutory Declaration ---
+\input{chapters/declaration}
+
+% --- Front Matter ---
+\pagenumbering{roman}
+\tableofcontents
+\listoffigures
+\listoftables
+
+% --- Abstract ---
+\input{chapters/abstract}
+
+% --- Main Content ---
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{chapters/chapter1_introduction}
+\input{chapters/chapter2_literature_review}
+\input{chapters/chapter3_data_description}
+\input{chapters/chapter4_methodology}
+\input{chapters/chapter5_results}
+\input{chapters/chapter6_discussion}
+\input{chapters/chapter7_conclusion}
+
+% --- Acknowledgements ---
+\input{chapters/acknowledgements}
+
+% --- Bibliography ---
+\bibliographystyle{apalike}
+\bibliography{references}
+
+% --- Appendix ---
+\begin{appendices}
+\input{chapters/appendix_a}
+\end{appendices}
+
+\end{document}
