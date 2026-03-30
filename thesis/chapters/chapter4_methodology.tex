@@ -114,7 +114,7 @@ w_k = \frac{N}{C \cdot n_k},
 
 \textbf{Stratified Sampling:} All train-test splits and cross-validation folds use stratified sampling to keep class proportions consistent.
 
-I considered SMOTE \citep{Chawla2002} but rejected it. SMOTE generates synthetic examples by interpolating between existing ones, which doesn't work with binary features --- interpolating between two binary vectors produces fractional values that don't correspond to real symptom combinations \citep{Fernandez2018}. Class weighting achieves a similar effect without creating artificial data.
+I considered SMOTE \citep{Chawla2002} but rejected it for this application. As discussed by \citet{Fernandez2018}, SMOTE's interpolation-based generation of synthetic examples is problematic for binary feature spaces: averaging between binary symptom vectors produces fractional values that do not correspond to valid symptom presentations. Class weighting achieves comparable balancing effects without generating artificial data points.
 
 \section{Hyperparameter Tuning}
 \label{sec:hyperparameter_tuning}

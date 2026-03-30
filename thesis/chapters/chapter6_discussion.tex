@@ -49,7 +49,7 @@ Random Forest and XGBoost offer feature importance rankings (Section~\ref{sec:fe
 
 Naive Bayes is technically interpretable because you can see the class probabilities and how each symptom contributes to them. However, the results often don't make intuitive sense because of the independence assumption. For instance, Naive Bayes might assign high probability to a disease even when a key symptom is missing, simply because the other symptoms are common.
 
-The EU AI Act's transparency requirements favor interpretable models. If a healthcare provider has to explain to a regulator or an auditor why the system made certain predictions, Logistic Regression is much easier to document and justify than XGBoost.
+The EU AI Act's transparency requirements \citep{EUAI2024} favor interpretable models. If a healthcare provider has to explain to a regulator or an auditor why the system made certain predictions, Logistic Regression is much easier to document and justify than XGBoost.
 
 \subsection{Training and Prediction Speed}
 
@@ -123,31 +123,31 @@ Another safety concern is over-reliance on the system. If patients start trustin
 
 \subsection{Data Protection and GDPR Compliance}
 
-Health data is a special category under the GDPR \citep{GDPR2016}. Article 9 of the GDPR classifies health information as sensitive personal data, which means it gets stronger protection than regular personal data. Processing health data requires:
+Health data is a special category under the GDPR \citep{GDPR2016}. Article 9 classifies health information as sensitive personal data subject to heightened protections. Processing health data in a symptom-based prediction system requires compliance with several key provisions:
 
 \begin{itemize}
-    \item \textbf{Explicit consent:} The patient must actively agree to have their symptom data processed, and the consent must be specific, informed, and freely given. Pre-checked boxes or implied consent are not sufficient.
-    \item \textbf{Purpose limitation:} The data can only be used for the purpose the patient consented to. If the data is collected for booking appointments, it cannot be repurposed for marketing or research without additional consent.
-    \item \textbf{Data minimization:} The system should only collect the minimum data necessary. If the classifier only needs symptom information, it should not ask for the patient's address or phone number unless those are needed for booking.
-    \item \textbf{Right to access and deletion:} Patients have the right to see what data the system has stored about them and to request deletion. The system needs a mechanism for handling these requests.
-    \item \textbf{Security:} Health data must be encrypted both in transit (e.g., using HTTPS) and at rest (e.g., encrypted database). Access should be restricted to authorized personnel only.
+    \item \textbf{Lawful basis and explicit consent (Art. 6, 9):} Patients must actively agree to symptom data processing through consent that is specific, informed, freely given, and unambiguous. Pre-checked boxes or implied consent do not meet the threshold for explicit consent.
+    \item \textbf{Purpose limitation (Art. 5):} Data may only be processed for the purpose specified at collection. Symptom data collected for appointment booking cannot be repurposed for marketing analytics or secondary research without obtaining separate, specific consent.
+    \item \textbf{Data minimization (Art. 5):} Systems must collect only data necessary for the stated purpose. If the classifier requires only symptom indicators, requesting unrelated personal information (e.g., postal address, non-medical contact details) violates this principle unless required for the booking function itself.
+    \item \textbf{Data subject rights (Art. 15, 17):} Patients have enforceable rights to access their stored data and to request erasure under specified conditions. The system must provide technical mechanisms for fulfilling these requests within the regulatory timeframes.
+    \item \textbf{Security measures (Art. 32):} Health data must be protected through appropriate technical and organizational measures, including encryption in transit (e.g., TLS/HTTPS) and at rest (e.g., encrypted storage), along with access controls limiting system interaction to authorized personnel.
 \end{itemize}
 
 A deployed system would need to minimize what data it stores. Ideally, symptom data should be processed in real-time and not stored permanently unless the patient explicitly opts in to save their history. Logs and analytics should be anonymized so that individual patients cannot be identified.
 
 \subsection{EU AI Act Requirements}
 
-The recently enacted EU AI Act \citep{EUAI2024} classifies medical AI systems as high-risk (Annex III, category 5b: AI systems intended for diagnosis or treatment). This means any commercial deployment would be subject to several requirements:
+The recently enacted EU AI Act \citep{EUAI2024} designates medical diagnostic AI systems as high-risk under Annex III (category 5b: AI systems intended for diagnosis or treatment). This classification triggers mandatory compliance obligations for any commercial deployment:
 
 \begin{itemize}
-    \item \textbf{Conformity assessment:} Before the system can be deployed, it must undergo a conformity assessment to verify that it meets safety and performance standards. This involves documenting the system's design, training data, testing procedures, and risk mitigation measures.
-    \item \textbf{Risk management:} The provider must identify and document risks (e.g., wrong predictions, bias, security breaches) and implement measures to mitigate them. This includes setting up monitoring systems to detect when the model's performance degrades.
-    \item \textbf{Human oversight:} High-risk AI systems must have a human-in-the-loop or human-on-the-loop. For a booking system, this could mean having a nurse or doctor review flagged cases where the model's confidence is low.
-    \item \textbf{Transparency:} The system must provide clear information about how it works, what data it uses, and its limitations. This favors simpler, more interpretable models like Logistic Regression over black-box models.
-    \item \textbf{Accuracy and robustness:} The system must achieve and maintain appropriate levels of accuracy. The provider is responsible for monitoring performance and retraining the model if accuracy drops.
+    \item \textbf{Conformity assessment (Art. 43):} Prior to market placement, high-risk AI systems must undergo conformity assessment procedures verifying compliance with safety and performance requirements. This necessitates comprehensive technical documentation covering system design, training datasets, validation procedures, and risk mitigation strategies.
+    \item \textbf{Risk management system (Art. 9):} Providers must establish and maintain documented risk management processes throughout the system lifecycle. This includes identifying reasonably foreseeable risks (incorrect predictions, algorithmic bias, security vulnerabilities), implementing mitigation measures, and establishing post-market monitoring to detect performance degradation.
+    \item \textbf{Human oversight provisions (Art. 14):} High-risk systems must be designed to enable effective human oversight through human-in-the-loop or human-on-the-loop mechanisms. For symptom-based booking systems, this could be operationalized through clinical review of low-confidence predictions or systematic auditing of specialist referral patterns.
+    \item \textbf{Transparency obligations (Art. 13):} Systems must provide users with clear, accessible information about system capabilities, operational logic, data utilization, and known limitations. These requirements favor interpretable architectures (e.g., Logistic Regression) over opaque models where explanation mechanisms are limited.
+    \item \textbf{Accuracy and robustness requirements (Art. 15):} Systems must achieve and maintain appropriate accuracy levels relative to their intended purpose. Providers bear responsibility for ongoing performance monitoring and model maintenance, including retraining when accuracy metrics decline.
 \end{itemize}
 
-These requirements are not optional --- they are legal obligations. A healthcare provider that deploys an AI system without meeting them could face fines of up to €15 million or 3\% of global annual revenue, whichever is higher.
+These obligations are legally binding. Under Article 99 of the EU AI Act, non-compliance can result in administrative fines up to €15 million or 3\% of total worldwide annual turnover, whichever amount is higher.
 
 The EU AI Act also requires technical documentation that includes the training data, model architecture, hyperparameters, and performance metrics. This means that all the experimental details documented in this thesis (Chapter~\ref{ch:methodology} and Appendix~\ref{app:supplementary}) would be required for a real deployment, not just for academic purposes.
 
