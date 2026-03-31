@@ -1,0 +1,184 @@
+{
+  "Naive Bayes": {
+    "accuracy": 0.8411434297618734,
+    "precision": 0.7717817206134043,
+    "recall": 0.7700135935194112,
+    "f1": 0.7597137445563567,
+    "best_params": {
+      "alpha": 0.01
+    },
+    "train_time_seconds": 1.68
+  },
+  "Logistic Regression": {
+    "accuracy": 0.8182009968091559,
+    "precision": 0.6450137116346961,
+    "recall": 0.8043324552906325,
+    "f1": 0.6733409974753908,
+    "best_params": {
+      "C": 0.01,
+      "solver": "lbfgs"
+    },
+    "train_time_seconds": 173.39
+  },
+  "SVM": {
+    "accuracy": 0.6955776482687693,
+    "precision": 0.5960974819434686,
+    "recall": 0.6457806617067777,
+    "f1": 0.5485589781933794,
+    "best_params": {
+      "loss": "hinge",
+      "alpha": 0.0001,
+      "note": "SGD approx of LinearSVM"
+    },
+    "train_time_seconds": 156.48
+  },
+  "Random Forest": {
+    "accuracy": 0.4668916958940956,
+    "precision": 0.55915900834864,
+    "recall": 0.5209174777397965,
+    "f1": 0.45169586797576533,
+    "best_params": {
+      "max_depth": 10,
+      "min_samples_split": 2,
+      "n_estimators": 100
+    },
+    "train_time_seconds": 2.86,
+    "top_features": [
+      {
+        "feature": "cough",
+        "importance": 0.01960415297791345
+      },
+      {
+        "feature": "emotional symptoms",
+        "importance": 0.018710543625291277
+      },
+      {
+        "feature": "elbow weakness",
+        "importance": 0.014562120374037748
+      },
+      {
+        "feature": "dizziness",
+        "importance": 0.014546913518862316
+      },
+      {
+        "feature": "low back weakness",
+        "importance": 0.013973814068008019
+      },
+      {
+        "feature": "lack of growth",
+        "importance": 0.013396016932837335
+      },
+      {
+        "feature": "wrist weakness",
+        "importance": 0.011795712301127657
+      },
+      {
+        "feature": "weight gain",
+        "importance": 0.011686639330974476
+      },
+      {
+        "feature": "headache",
+        "importance": 0.011410058218225785
+      },
+      {
+        "feature": "symptoms of the scrotum and testes",
+        "importance": 0.01123561125037268
+      },
+      {
+        "feature": "knee lump or mass",
+        "importance": 0.011209485481023452
+      },
+      {
+        "feature": "diminished hearing",
+        "importance": 0.011111104318327361
+      },
+      {
+        "feature": "anxiety and nervousness",
+        "importance": 0.010842004969561175
+      },
+      {
+        "feature": "sharp chest pain",
+        "importance": 0.010637751975653111
+      },
+      {
+        "feature": "depressive or psychotic symptoms",
+        "importance": 0.01055585752333134
+      }
+    ]
+  },
+  "XGBoost": {
+    "accuracy": 0.7984494079797474,
+    "precision": 0.5664332469373808,
+    "recall": 0.5406932591716594,
+    "f1": 0.5463265030641226,
+    "best_params": {
+      "learning_rate": 0.3,
+      "max_depth": 3,
+      "n_estimators": 20,
+      "subsample": 0.8
+    },
+    "train_time_seconds": 151.29,
+    "top_features": [
+      {
+        "feature": "pus draining from ear",
+        "importance": 0.12552408874034882
+      },
+      {
+        "feature": "hip stiffness or tightness",
+        "importance": 0.11835938692092896
+      },
+      {
+        "feature": "eyelid lesion or rash",
+        "importance": 0.10324376076459885
+      },
+      {
+        "feature": "back stiffness or tightness",
+        "importance": 0.09621459990739822
+      },
+      {
+        "feature": "breathing fast",
+        "importance": 0.09484335780143738
+      },
+      {
+        "feature": "mass or swelling around the anus",
+        "importance": 0.09414132684469223
+      },
+      {
+        "feature": "dry or flaky scalp",
+        "importance": 0.0913781002163887
+      },
+      {
+        "feature": "infant feeding problem",
+        "importance": 0.016414817422628403
+      },
+      {
+        "feature": "mouth dryness",
+        "importance": 0.014515857212245464
+      },
+      {
+        "feature": "flu-like syndrome",
+        "importance": 0.00862961821258068
+      },
+      {
+        "feature": "swollen or red tonsils",
+        "importance": 0.0066351392306387424
+      },
+      {
+        "feature": "unusual color or odor to urine",
+        "importance": 0.006532273720949888
+      },
+      {
+        "feature": "frequent menstruation",
+        "importance": 0.005532961338758469
+      },
+      {
+        "feature": "arm weakness",
+        "importance": 0.005472243297845125
+      },
+      {
+        "feature": "hand or finger weakness",
+        "importance": 0.005316996015608311
+      }
+    ]
+  }
+}
