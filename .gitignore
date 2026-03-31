@@ -1,0 +1,11 @@
+# IDE & editor
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+AGENTS.md
+
+# Misc
+.perles/
+.DS_Store
