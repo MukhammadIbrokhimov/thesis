@@ -42,16 +42,16 @@ Table~\ref{tab:results_dataset2} shows the results on the larger Diseases and Sy
 \toprule
 \textbf{Classifier} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-score} \\
 \midrule
-Naive Bayes          & XX.XX & XX.XX & XX.XX & XX.XX \\
-Logistic Regression  & XX.XX & XX.XX & XX.XX & XX.XX \\
-SVM (RBF)            & XX.XX & XX.XX & XX.XX & XX.XX \\
-Random Forest        & XX.XX & XX.XX & XX.XX & XX.XX \\
-XGBoost              & XX.XX & XX.XX & XX.XX & XX.XX \\
+Naive Bayes          & 84.11 & 77.18 & 77.00 & 75.97 \\
+Logistic Regression  & 81.82 & 64.50 & 80.43 & 67.33 \\
+SVM (Linear, SGD)    & 69.56 & 59.61 & 64.58 & 54.86 \\
+Random Forest        & 46.69 & 55.92 & 52.09 & 45.17 \\
+XGBoost              & 79.84 & 56.64 & 54.07 & 54.63 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The results on Dataset~2 followed a similar pattern, but all classifiers improved with the additional training data. The performance gap between Naive Bayes and the ensemble methods widened on the larger dataset, suggesting that more data helps complex models more than it helps simple ones.
+The results on Dataset~2 reveal a very different picture from Dataset~1. With 727 disease classes and 151,680 training samples, all classifiers experienced a drop in performance. Naive Bayes remained the strongest at 84.11\% accuracy and 75.97\% macro F1, outperforming more complex models. Logistic Regression achieved 81.82\% accuracy but with lower precision (64.50\%), indicating it over-predicts minority classes. XGBoost reached 79.84\% accuracy. Surprisingly, Random Forest performed worst at 46.69\% accuracy, likely because the fixed tree depth of 10 is insufficient to distinguish 727 classes. SVM was approximated using an SGD-based linear classifier for computational feasibility on this scale. The overall performance drop from Dataset~1 to Dataset~2 is expected given the much higher number of classes and greater symptom overlap in the larger dataset.
 
 \section{Error Analysis}
 \label{sec:error_analysis}
