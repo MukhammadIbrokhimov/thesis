@@ -1,136 +1,214 @@
-# ML Experiments for Thesis: Disease Prediction from Symptoms
+# ML Experiments — Disease Prediction from Symptoms
 
-This project implements the experimental pipeline for the thesis "Comparing Machine Learning Methods for Predicting Diseases from Symptoms in Healthcare".
+Experimental pipeline for the thesis *"Comparing Machine Learning Methods for Predicting Diseases from Symptoms in Healthcare"*. Implements five classifiers evaluated on two public Kaggle datasets.
+
+---
 
 ## Project Structure
 
 ```
 experiments/
-├── src/                    # Source code
-│   ├── classifiers/       # Classifier implementations
-│   └── preprocessing.py   # Data preprocessing pipeline
-├── experiments/           # Experiment runner scripts
-├── scripts/               # Utility scripts (LaTeX export, visualization)
-├── notebooks/             # Jupyter notebooks for exploration
-├── data/                  # Data directory (not committed)
-│   ├── raw/              # Raw datasets from Kaggle
-│   └── processed/        # Preprocessed data
-├── results/              # Experiment results (JSON format)
-├── figures/              # Generated figures (PDF/PNG)
-└── requirements.txt      # Python dependencies
+├── src/
+│   ├── classifiers/
+│   │   ├── base.py                  # BaseClassifier with GridSearchCV training
+│   │   ├── naive_bayes.py
+│   │   ├── logistic_regression.py
+│   │   ├── svm.py
+│   │   ├── random_forest.py
+│   │   └── xgboost_clf.py
+│   └── preprocessing.py             # Full preprocessing pipeline
+├── experiments/
+│   ├── run_dataset1.py              # Dataset 1 runner (with GridSearchCV)
+│   └── run_dataset2.py              # Dataset 2 runner (fixed hyperparameters)
+├── scripts/
+│   ├── export_latex_tables.py       # JSON results → LaTeX booktabs tables
+│   ├── generate_confusion_matrix.py # Confusion matrix figure
+│   └── generate_feature_importance.py # Feature importance figure
+├── data/
+│   ├── raw/                         # Raw CSVs from Kaggle (not committed)
+│   │   ├── dataset1/
+│   │   └── dataset2/
+│   └── processed/                   # Preprocessed .npy files (not committed)
+├── results/
+│   ├── dataset1_results.json
+│   ├── dataset2_results.json
+│   ├── table3.tex                   # LaTeX table for Dataset 1
+│   └── table4.tex                   # LaTeX table for Dataset 2
+├── config.py
+└── requirements.txt
+```
 
-## Setup Instructions
+---
 
-### 1. Create Virtual Environment
+## Setup
+
+### 1. Create virtual environment
 
 ```bash
 cd experiments
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate        # Windows: venv\Scripts\activate
 ```
 
-### 2. Install Dependencies
+### 2. Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Download Datasets
+### 3. Download datasets from Kaggle
 
-Download the following datasets from Kaggle:
+Set up your Kaggle API token first (see `KAGGLE_SETUP.md` for detailed instructions).
 
-**Dataset 1: Disease Symptom Prediction Dataset**
-- Kaggle: https://www.kaggle.com/datasets/itachi9604/disease-symptom-description-dataset
-- Save to: `data/raw/dataset1/`
-- Expected: ~5,000 records, 132 symptoms, 41 diseases
+```bash
+# Dataset 1: Disease Symptom Prediction (~5,000 records, 132 symptoms, 41 classes)
+kaggle datasets download -d itachi9604/disease-symptom-description-dataset \
+  -p data/raw/dataset1/ --unzip
 
-**Dataset 2: Diseases and Symptoms Dataset**
-- Kaggle: https://www.kaggle.com/datasets/dhivyeshrk/diseases-and-symptoms-dataset
-- Save to: `data/raw/dataset2/`
-- Expected: ~246,000 records
+# Dataset 2: Diseases and Symptoms (~246,000 records, 377 symptoms, 727 classes)
+kaggle datasets download -d dhivyeshrk/diseases-and-symptoms-dataset \
+  -p data/raw/dataset2/ --unzip
+```
 
-You'll need a Kaggle account and API key. See: https://www.kaggle.com/docs/api
-
-### 4. Run Preprocessing
+### 4. Run preprocessing
 
 ```bash
 python src/preprocessing.py
 ```
 
-### 5. Run Experiments
+This saves train/test splits as `.npy` files under `data/processed/`.
+
+---
+
+## Running Experiments
+
+### Dataset 1
+
+Uses GridSearchCV with 5-fold stratified cross-validation to tune hyperparameters.
 
 ```bash
-# Run experiments on Dataset 1
 python experiments/run_dataset1.py
+```
 
-# Run experiments on Dataset 2
+**Expected runtime:** ~5 minutes total on a modern laptop.
+
+### Dataset 2
+
+Uses **fixed hyperparameters** (best params from Dataset 1) instead of GridSearchCV.
+GridSearchCV is not feasible on 151K samples x 727 classes — it would take many hours.
+
+```bash
 python experiments/run_dataset2.py
 ```
 
-### 6. Generate Visualizations
+**Expected runtime:** ~10 minutes total.
+
+| Classifier          | Approx. time |
+|---------------------|-------------|
+| Naive Bayes         | 2s          |
+| Logistic Regression | 3 min       |
+| SVM (SGD)           | 3 min       |
+| Random Forest       | 3s          |
+| XGBoost             | 3 min       |
+
+> **Note on SVM for Dataset 2:** The standard `SVC(kernel='rbf')` and `LinearSVC` are
+> computationally infeasible at this scale (727 one-vs-rest classifiers x 151K samples).
+> Dataset 2 uses `SGDClassifier(loss='hinge')`, a stochastic approximation of a linear SVM.
+
+---
+
+## Generating Outputs
 
 ```bash
-# Generate LaTeX tables
+# LaTeX booktabs tables -> results/table3.tex and results/table4.tex
 python scripts/export_latex_tables.py
 
-# Generate confusion matrix
+# Confusion matrix figure -> ../thesis/figures/confusion_matrix.pdf
 python scripts/generate_confusion_matrix.py
 
-# Generate feature importance chart
+# Feature importance figure -> ../thesis/figures/feature_importance.pdf
 python scripts/generate_feature_importance.py
 ```
 
-## Experiment Details
+---
 
-### Classifiers
-1. Naive Bayes (BernoulliNB)
-2. Logistic Regression
-3. Support Vector Machine (RBF kernel)
-4. Random Forest
-5. XGBoost
+## Results Summary
 
-### Evaluation Metrics
-- Accuracy
-- Precision (macro-averaged)
-- Recall (macro-averaged)
-- F1-score (macro-averaged)
+### Dataset 1 (41 classes)
 
-### Cross-Validation
-- Stratified 5-fold cross-validation
-- Hyperparameter tuning via GridSearchCV
-- Scoring metric: macro-F1
+| Classifier          | Accuracy | Precision | Recall  | F1      |
+|---------------------|----------|-----------|---------|---------|
+| Naive Bayes         | 98.36%   | 99.19%    | 98.78%  | 98.70%  |
+| Logistic Regression | 100.00%  | 100.00%   | 100.00% | 100.00% |
+| SVM (RBF)           | 100.00%  | 100.00%   | 100.00% | 100.00% |
+| Random Forest       | 98.36%   | 99.19%    | 98.78%  | 98.70%  |
+| XGBoost             | 95.08%   | 92.28%    | 93.90%  | 92.52%  |
 
-### Class Imbalance Handling
-- Class weighting (`class_weight='balanced'`)
-- Stratified sampling for train-test splits
+### Dataset 2 (727 classes)
 
-## Expected Runtime
+| Classifier          | Accuracy | Precision | Recall | F1     |
+|---------------------|----------|-----------|--------|--------|
+| Naive Bayes         | 84.11%   | 77.18%    | 77.00% | 75.97% |
+| Logistic Regression | 81.82%   | 64.50%    | 80.43% | 67.33% |
+| SVM (Linear, SGD)   | 69.56%   | 59.61%    | 64.58% | 54.86% |
+| Random Forest       | 46.69%   | 55.92%    | 52.09% | 45.17% |
+| XGBoost             | 79.84%   | 56.64%    | 54.07% | 54.63% |
 
-- Dataset 1 preprocessing: < 1 minute
-- Dataset 1 experiments: 5-10 minutes
-- Dataset 2 preprocessing: < 5 minutes
-- Dataset 2 experiments: 30-60 minutes (SVM is slowest)
-
-## Output Files
-
-- `results/dataset1_results.json` - Metrics for all classifiers on Dataset 1
-- `results/dataset2_results.json` - Metrics for all classifiers on Dataset 2
-- `results/table3.tex` - LaTeX booktabs table for Dataset 1
-- `results/table4.tex` - LaTeX booktabs table for Dataset 2
-- `figures/confusion_matrix.pdf` - Confusion matrix for XGBoost
-- `figures/feature_importance.pdf` - Top 15 feature importance chart
+---
 
 ## Troubleshooting
 
-### Import errors
-Make sure virtual environment is activated and all dependencies are installed.
+### Training appears frozen (near 0% CPU on macOS)
 
-### Memory errors on Dataset 2
-SVM with large datasets can be memory-intensive. Reduce CV folds or use a smaller sample for initial testing.
+If you previously ran a script using `GridSearchCV(n_jobs=-1)` and killed it mid-run,
+joblib worker processes may still be running in the background consuming all CPU silently.
+Kill them with:
 
-### Kaggle API authentication
-Set up `~/.kaggle/kaggle.json` with your API credentials.
+```bash
+pkill -f "loky.backend.popen_loky_posix"
+```
+
+Then restart your experiment script.
+
+### Very slow training on Dataset 2
+
+The raw data arrays are stored as `int8`. Numpy's integer matmul bypasses BLAS and runs
+element-by-element, making even simple classifiers take hours. The `run_dataset2.py`
+script converts arrays to `float64` automatically before training — do not remove this step.
+
+### `ModuleNotFoundError`
+
+Make sure the virtual environment is activated:
+
+```bash
+source venv/bin/activate
+```
+
+### Kaggle `401 Unauthorized`
+
+Your token may have expired. Create a new one: Kaggle → Settings → API → Create New Token,
+then replace `~/.kaggle/kaggle.json`.
+
+### Kaggle `403 Forbidden`
+
+Visit the dataset page on Kaggle and click Download once to accept the terms of use,
+then retry the API download.
+
+---
+
+## Classifier Implementations
+
+All classifiers extend `BaseClassifier` in `src/classifiers/base.py`, which provides:
+
+- `train(X, y)` — fits with GridSearchCV (used for Dataset 1)
+- `evaluate(X_test, y_test)` — returns accuracy, precision, recall, F1 (macro-averaged)
+- `get_feature_importance()` — returns feature importances where available (RF, XGBoost)
+
+Each classifier exposes `get_param_grid()` for hyperparameter search and a `needs_scaling`
+property (`True` for Logistic Regression and SVM).
+
+---
 
 ## References
 
-See thesis `references.bib` for full citations of datasets and methods.
+See `../thesis/references.bib` for full dataset and method citations.
