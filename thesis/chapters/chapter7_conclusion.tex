@@ -6,15 +6,15 @@
 
 I compared five machine learning classifiers for predicting diseases from binary symptom vectors: Naive Bayes, Logistic Regression, SVM, Random Forest, and XGBoost. I tested all five on two Kaggle datasets --- one with about 5,000 records and one with about 246,000 --- using identical preprocessing, cross-validation, and evaluation procedures. The goal was to provide a controlled comparison that answers the question: which classifier works best for symptom-based disease prediction, and does the answer depend on dataset size or class imbalance?
 
-The results showed clear performance differences. Random Forest and XGBoost consistently outperformed the other three classifiers across all metrics (accuracy, precision, recall, F1-score) on both datasets. The margin was large enough that I would confidently recommend either one over simpler methods for this kind of task. XGBoost had a slight edge over Random Forest, particularly on rare disease classes, which suggests its boosting strategy is effective at focusing on difficult examples.
+The results showed clear performance differences, but not one model that dominated everywhere. On Dataset~1, Logistic Regression and SVM reached perfect scores, while Naive Bayes and Random Forest were also very strong. On Dataset~2, Naive Bayes achieved the best accuracy, with Logistic Regression and XGBoost also performing well. This means the best model depends on dataset size, class imbalance, and the trade-off between accuracy, training time, and interpretability.
 
-Logistic Regression came in third, performing reasonably well despite being a linear model. It could not match the ensemble methods' ability to capture complex symptom interactions, but it was close enough that it remains a viable option when interpretability is more important than squeezing out the last few percentage points of accuracy.
+Logistic Regression remained competitive despite being a linear model. It could not match the strongest models on every metric, but it is still a viable option when interpretability is more important than squeezing out the last few percentage points of accuracy.
 
 SVM performed similarly to Logistic Regression in terms of predictive metrics but was much slower to train, particularly on the larger dataset. Its one-vs-one multi-class strategy scales poorly with the number of classes, which makes it impractical for this application.
 
-Naive Bayes performed worst across all metrics, which was expected given its independence assumption. However, it still achieved respectable accuracy and trained extremely fast, so it remains useful as a baseline or for scenarios where computational resources are severely limited.
+Naive Bayes was a strong baseline and was especially competitive on Dataset~2, where it achieved the best accuracy. It still trains extremely fast, so it remains useful whenever simplicity and runtime matter more than model complexity.
 
-More data helped all classifiers, but the benefit was not uniform. XGBoost and Random Forest saw substantial improvements when moving from 5,000 to 246,000 examples, while Naive Bayes improved only slightly. This suggests that ensemble methods have more room to learn from additional data, while Naive Bayes hits a performance ceiling quickly.
+More data changed the picture, but not in a single direction. Some models benefited from the larger dataset, while others did not become the best overall. This suggests that model choice for symptom-based disease prediction should be based on the actual dataset rather than on a general assumption that more complex methods always win.
 
 Error analysis revealed that most misclassifications happened between diseases that share similar symptoms. For example, different respiratory conditions were frequently confused because they present with overlapping symptoms like cough, fever, and chest pain. This is medically understandable and not necessarily a problem for the healthcare booking use case, since patients with similar symptom patterns often need the same type of specialist anyway.
 
@@ -35,8 +35,9 @@ This thesis makes three contributions:
 Based on what I found, I recommend the following:
 
 \begin{itemize}
-    \item Use XGBoost or Random Forest for symptom-based disease prediction. Both are reliable, and the choice between them can depend on whether you need XGBoost's slightly better performance or Random Forest's simpler setup.
-    \item Keep a Logistic Regression model as an interpretable fallback, especially if the system needs to explain its predictions to doctors or regulators.
+    \item Use Logistic Regression when interpretability matters most, because its coefficients are easy to explain and document.
+    \item Keep Naive Bayes as a strong and very fast baseline, especially when training time is limited or when a simple reference model is needed.
+    \item Treat XGBoost and Random Forest as useful options, but do not assume they will always outperform simpler models on every dataset.
     \item Use class weighting rather than SMOTE for handling imbalanced classes when the features are binary.
     \item Do not deploy without external validation on real clinical data, confidence thresholds, and human oversight.
 \end{itemize}

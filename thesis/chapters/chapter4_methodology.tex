@@ -63,14 +63,14 @@ I used L2 regularization to prevent overfitting. The reason I kept this one is t
 \subsection{Support Vector Machine}
 \label{sec:svm}
 
-SVM with an RBF kernel was included to test a non-linear method \citep{Cortes1995}:
+SVM was included to test a margin-based classifier \citep{Cortes1995}. For Dataset~1, I used an RBF kernel because the dataset is small enough for a full kernel method:
 
 \begin{equation}
 \label{eq:svm_kernel}
 K(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2\right).
 \end{equation}
 
-For 41 classes, SVM trains $C(C-1)/2 = 820$ binary classifiers using one-vs-one. I quickly discovered this was painfully slow --- SVM took longer than all the other methods combined on Dataset~2. Implementation: \texttt{sklearn.svm.SVC}.
+For Dataset~2, a full kernel SVM would be too slow, so I used a linear approximation based on stochastic gradient descent with hinge loss. This keeps the model practical on the larger dataset while still preserving the basic SVM objective. Implementation: \texttt{sklearn.svm.SVC} for Dataset~1 and \texttt{sklearn.linear\_model.SGDClassifier} for Dataset~2.
 
 \subsection{Random Forest}
 \label{sec:random_forest}
@@ -103,7 +103,7 @@ Both datasets have class imbalance --- some diseases appear much more often than
 
 I used two strategies:
 
-\textbf{Class Weighting:} For Logistic Regression, SVM, Random Forest, and XGBoost, I set \texttt{class\_weight='balanced'}, which adjusts each class's weight inversely to its frequency:
+\textbf{Class Weighting:} For Logistic Regression, SVM, and Random Forest, I set \texttt{class\_weight='balanced'}, which adjusts each class's weight inversely to its frequency:
 
 \begin{equation}
 \label{eq:class_weight}
@@ -119,7 +119,7 @@ I considered SMOTE \citep{Chawla2002} but rejected it for this application. As d
 \section{Hyperparameter Tuning}
 \label{sec:hyperparameter_tuning}
 
-I tuned hyperparameters using grid search with stratified 5-fold cross-validation on the training set. The search spaces are in Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary}.
+I tuned hyperparameters using grid search with stratified 5-fold cross-validation on the training set for Dataset~1. The search spaces are in Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary}. Dataset~2 uses fixed settings chosen to keep the runtime manageable.
 
 I used macro-averaged F1-score as the scoring metric for grid search instead of accuracy. The reason is that accuracy can be misleadingly high on imbalanced data --- a classifier that always predicts the most common disease could still get, say, 40\% accuracy. Macro-F1 treats every class equally, which forces the tuning process to care about rare-disease performance instead of just optimizing for the majority classes.
 
