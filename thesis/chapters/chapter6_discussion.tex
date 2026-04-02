@@ -26,7 +26,7 @@ Despite this limitation, Naive Bayes is still useful as a baseline. It trains in
 
 \subsection{Scaling with Data}
 
-The move from Dataset~1 to Dataset~2 changed the ranking rather than producing a simple across-the-board improvement. Naive Bayes achieved the best accuracy on Dataset~2, while Logistic Regression remained competitive and the more complex models did not dominate in the way they did on Dataset~1. This shows that a larger dataset does not automatically favor the most complex classifier; the number of classes, class overlap, and the chosen hyperparameters matter just as much as sample size.
+When moving from Dataset~1 to Dataset~2, the ranking changed instead of improving uniformly for all models. Naive Bayes achieved the best accuracy on Dataset~2, Logistic Regression remained competitive, and the more complex models were no longer clearly dominant. In my view, this indicates that dataset structure (especially class count and symptom overlap) can matter as much as model complexity.
 
 This suggests that if you have access to large amounts of training data, you should definitely use an ensemble method. But if you are working with a small dataset (e.g., from a small clinic with only a few hundred patient records), the gap between ensemble methods and simpler baselines might be smaller. I would still recommend trying Random Forest or XGBoost first, but Logistic Regression or even Naive Bayes might be good enough for a prototype.
 
