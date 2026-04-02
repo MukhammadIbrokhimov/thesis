@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ### 3. Download datasets from Kaggle
 
-Set up your Kaggle API token first (see `KAGGLE_SETUP.md` for detailed instructions).
+Set up your Kaggle API token first.
 
 ```bash
 # Dataset 1: Disease Symptom Prediction (~5,000 records, 132 symptoms, 41 classes)
