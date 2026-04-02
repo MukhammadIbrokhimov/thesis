@@ -19,7 +19,7 @@ The following steps were applied identically to both datasets:
 \section{Hyperparameter Search Spaces}
 \label{app:hyperparameters}
 
-Table~\ref{tab:hyperparameters} documents the hyperparameter search spaces used for grid search and the optimal values selected for each classifier.
+Table~\ref{tab:hyperparameters} documents the hyperparameter search spaces used for grid search on Dataset~1 and the optimal values selected there. Dataset~2 uses fixed settings, which are listed after the table.
 
 \begin{table}[H]
 \centering
@@ -30,25 +30,27 @@ Table~\ref{tab:hyperparameters} documents the hyperparameter search spaces used 
 \toprule
 \textbf{Classifier} & \textbf{Parameter} & \textbf{Search Space} & \textbf{Selected} \\
 \midrule
-Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & 1.0 \\
+Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & 0.01 \\
 \midrule
-\multirow{2}{*}{Logistic Regression} & C & \{0.01, 0.1, 1, 10, 100\} & 10 \\
+\multirow{2}{*}{Logistic Regression} & C & \{0.01, 0.1, 1, 10, 100\} & 0.01 \\
 & solver & \{lbfgs, saga\} & lbfgs \\
 \midrule
-\multirow{2}{*}{SVM (RBF)} & C & \{0.1, 1, 10, 100\} & 10 \\
-& gamma & \{scale, auto, 0.01, 0.1\} & scale \\
+\multirow{2}{*}{SVM (RBF)} & C & \{0.1, 1, 10, 100\} & 1 \\
+& gamma & \{scale, auto, 0.01, 0.1\} & 0.01 \\
 \midrule
-\multirow{3}{*}{Random Forest} & n\_estimators & \{100, 200, 500\} & 200 \\
-& max\_depth & \{10, 20, 50, None\} & None \\
+\multirow{3}{*}{Random Forest} & n\_estimators & \{100, 200, 500\} & 100 \\
+& max\_depth & \{10, 20, 50, None\} & 10 \\
 & min\_samples\_split & \{2, 5, 10\} & 2 \\
 \midrule
-\multirow{4}{*}{XGBoost} & n\_estimators & \{100, 200, 500\} & 200 \\
-& max\_depth & \{3, 6, 10\} & 6 \\
-& learning\_rate & \{0.01, 0.1, 0.3\} & 0.1 \\
+\multirow{4}{*}{XGBoost} & n\_estimators & \{100, 200, 500\} & 500 \\
+& max\_depth & \{3, 6, 10\} & 3 \\
+& learning\_rate & \{0.01, 0.1, 0.3\} & 0.3 \\
 & subsample & \{0.8, 1.0\} & 0.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+For Dataset~2, the fixed settings are: Naive Bayes with alpha = 0.01, Logistic Regression with C = 0.01 and solver = lbfgs, SVM with hinge loss and alpha = 1e-4, Random Forest with 100 trees, max depth 10, and min_samples_split = 2, and XGBoost with 20 trees, max depth 3, learning rate 0.3, and subsample 0.8.
 
 \section{Software Versions}
 \label{app:software}
@@ -61,12 +63,14 @@ Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & 1.0 \\
 \toprule
 \textbf{Software} & \textbf{Version} \\
 \midrule
-Python     & 3.14.0 \\
-scikit-learn & 1.8.0 \\
-XGBoost    & 3.2.0 \\
-pandas     & 3.0.1 \\
-NumPy      & 2.4.4 \\
-matplotlib & 3.10.8 \\
+Python     & 3.9+ \\
+scikit-learn & 1.3+ \\
+XGBoost    & 2.0+ \\
+pandas     & 2.0+ \\
+NumPy      & 1.24+ \\
+matplotlib & 3.7+ \\
+joblib     & 1.3+ \\
+tqdm       & 4.66+ \\
 \bottomrule
 \end{tabular}
 \end{table}

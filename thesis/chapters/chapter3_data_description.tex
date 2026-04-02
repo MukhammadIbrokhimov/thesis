@@ -60,8 +60,8 @@ Table~\ref{tab:dataset2_overview} summarizes its key characteristics.
 \midrule
 Source                     & Kaggle (dhivyeshrk) \\
 Number of records          & $\sim$246,000 \\
-Number of features         & After preprocessing: 132 \\
-Number of disease classes  & 41 \\
+Number of features         & 377 binary symptoms \\
+Number of disease classes  & 727 \\
 Feature type               & Binary (0/1) \\
 Target variable            & Disease name (categorical) \\
 Missing values             & Minimal \\
@@ -97,8 +97,8 @@ The two datasets differ in several important ways beyond size. Table~\ref{tab:da
 \textbf{Characteristic} & \textbf{Dataset~1} & \textbf{Dataset~2} \\
 \midrule
 Number of records & $\sim$5,000 & $\sim$246,000 \\
-Number of classes & 41 & 41 \\
-Number of features & 132 & 132 \\
+Number of classes & 41 & 727 \\
+Number of features & 132 & 377 \\
 Class imbalance ratio & $\sim$10:1 & $\sim$50:1 \\
 Missing values & Moderate & Minimal \\
 Data quality & High (curated) & Good (web-sourced) \\
@@ -120,11 +120,11 @@ Another reason for using two datasets is to check whether classifier rankings ar
 
 I applied the same preprocessing pipeline to both datasets to ensure fair comparison across classifiers. The steps were:
 
-\textbf{Step 1: Data Loading and Inspection.} I loaded each dataset from CSV using \texttt{pandas.read\_csv()} and performed initial inspection. This included checking for structural issues (e.g., mismatched column counts), column types (to make sure symptoms were numeric), missing values, and duplicate records. I found and removed 37 duplicate records in Dataset~1 and 412 duplicates in Dataset~2. Duplicate records could artificially inflate performance if the same record appears in both training and test sets.
+\textbf{Step 1: Data Loading and Inspection.} I loaded each dataset from CSV using \texttt{pandas.read\_csv()} and performed initial inspection. This included checking for structural issues (e.g., mismatched column counts), column types (to make sure symptoms were numeric), missing values, and duplicate records. Duplicate records could artificially inflate performance if the same record appears in both training and test sets, so I removed them before splitting.
 
 \textbf{Step 2: Missing Value Handling.} Dataset~1 had missing values in symptom columns, which I filled with 0 (symptom absent) to match the binary encoding. The assumption is that if a symptom is not explicitly marked as present, it is absent. This is a reasonable default for symptom data. Dataset~2 had minimal missing values (less than 0.5\% of all cells), which I handled the same way. An alternative would have been to drop records with missing values, but that would have thrown away useful data.
 
-\textbf{Step 3: Feature Encoding.} Symptoms needed to be encoded as binary features. Dataset~1 was already in this format, with each symptom column containing 0 or 1. For Dataset~2, I had to do more work. The original format used text-based symptom entries in some columns, which I converted to the same binary vector representation. I also had to align the symptom vocabularies between the two datasets so that the feature space was consistent. Both datasets ended up with 132 symptom features, though not all symptoms appear in both datasets. Symptoms that appear in only one dataset will have all zeros in the other dataset.
+\textbf{Step 3: Feature Encoding.} Symptoms needed to be encoded as binary features. Dataset~1 was already in this format, with each symptom column containing 0 or 1. Dataset~2 is also stored as a binary symptom table, so I simply load all feature columns except the disease label, fill missing values with 0, and keep the dataset-specific symptom names. I do not force the two datasets into the same feature space, because they are evaluated separately.
 
 \textbf{Step 4: Label Encoding.} I encoded disease names as integer labels using scikit-learn's \texttt{LabelEncoder}. This maps each disease name to a unique integer (e.g., "diabetes" $\rightarrow$ 0, "pneumonia" $\rightarrow$ 1, etc.). I saved the mapping so I could interpret results later by converting integer predictions back to disease names. All classifiers work with integer labels internally, so this step is necessary.
 
@@ -138,7 +138,7 @@ For binary features, standardization does not change much because all values are
 
 One important detail: I fit the scaler on the training set only, then applied it to both the training and test sets. If I had fit the scaler on the entire dataset before splitting, that would leak information from the test set into the training process, which would give optimistic performance estimates.
 
-\textbf{Step 7: Cross-Validation Setup.} I used stratified 5-fold cross-validation for hyperparameter tuning and evaluation. Stratified splits matter for imbalanced datasets because they keep the same class proportions in each fold. Without stratification, one fold might end up with very few examples of a rare disease, which would make the performance estimate unreliable.
+\textbf{Step 7: Cross-Validation Setup.} I used stratified 5-fold cross-validation for hyperparameter tuning on Dataset~1. Stratified splits matter for imbalanced datasets because they keep the same class proportions in each fold. Dataset~2 uses fixed hyperparameters instead of a full grid search, because exhaustive tuning would be too expensive at that scale. Evaluation on both datasets is still done on a held-out test set.
 
 Five folds is a common choice that balances bias and variance in the performance estimate. Fewer folds (e.g., 3) would be faster but give a noisier estimate. More folds (e.g., 10) would be more accurate but take longer to compute. For the larger Dataset~2, 5-fold cross-validation already takes significant compute time, so I did not go higher.
 
