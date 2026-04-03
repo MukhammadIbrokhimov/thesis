@@ -1,129 +1,128 @@
 \chapter{Discussion}
 \label{ch:discussion}
 
-This chapter interprets the results, compares the trade-offs between classifiers, acknowledges what this study cannot claim, and discusses the ethical and practical sides of deploying these models.
+The chapter explains the findings, contrasts the trade off among classifiers, admits what this paper cannot assert and the ethical and practical aspects of implementing such models.
 
 \section{Interpretation of Results}
 \label{sec:interpretation}
 
-After running the experiments, I found that ensemble methods --- Random Forest and XGBoost --- clearly outperformed the three simpler classifiers on both datasets. This makes sense for tabular data with feature interactions: individual trees can learn rules like ``if fever AND rash AND joint pain, predict disease X,'' while a linear model like Logistic Regression cannot represent such conditional patterns without explicit feature engineering.
+Upon completion of the experiments, I discovered that the two ensemble-based classifiers, namely --- Random Forest and XGBoost --- could easily beat the three simplified classifiers on both datasets. This is reasonable in case the tabular data has feature interactions: single trees can be trained to know rules such as: "if fever AND rash AND joint pain, predict disease X," whereas a linear model such as Logistic Regression cannot capture such conditional relationships without explicit feature engineering.
 
 \subsection{Why Ensemble Methods Won}
 
-The performance advantage of Random Forest and XGBoost can be explained by looking at how symptom-based disease prediction actually works. Diseases are not defined by single symptoms but by combinations of symptoms. A patient with fever alone could have dozens of different conditions, but a patient with fever + yellowish skin + abdominal pain is much more likely to have a liver-related disease. This kind of conditional logic is exactly what decision trees are good at.
+The reason why Random Forest and XGBoost can perform better is easy to explain by taking a look at the actual process of symptom-based disease prediction. Diseases are not characterized by individual symptoms but a combination of symptoms. A patient who has a fever would have dozens of possible conditions, whereas a patient who has a fever + a yellowish skin + abdominal pain is far much more likely to have a disease of the liver. Decision trees are particularly good at this type of conditional logic.
 
-Random Forest builds many trees, each of which votes on the prediction. Because the trees are trained on different bootstrap samples of the data, they learn slightly different patterns. When you average their predictions, errors cancel out and you get a more robust classifier than any single tree would provide. This is called ensemble averaging, and it is one of the most reliable ways to improve ML performance \citep{Breiman2001}.
+Random Forest constructs numerous trees and each tree votes on the prediction. Due to the fact that the trees are trained on various bootstrap samples of the data, they learn a little different pattern. Errors cancel upon averaging their prediction and you have a more resilient classifier than would have been the case with a single tree. This is referred to as ensemble averaging, and it is one of the surest methods of enhancing the performance of MLs \citep{Breiman2001).
 
-XGBoost takes a different approach. Instead of building trees independently, it builds them sequentially. Each new tree focuses on the examples that previous trees got wrong. This boosting strategy is particularly helpful for rare diseases. Random Forest can miss rare examples because each tree only sees a bootstrap sample, but XGBoost explicitly focuses each new tree on the mistakes of previous ones. The regularization term in eq.~\ref{eq:xgboost} also helped prevent overfitting on disease categories with few training examples.
+XGBoost does things differently. It does not construct trees at once but one after another. The examples that the trees made wrong are emphasized by their new trees. This boosting approach is especially useful with rare diseases. Random Forest may fail to identify rare cases due to the fact that the bootstrap sample presented to a single tree is random, whereas XGBoost will directly target the errors of its predecessor. The regularization parameter in eq.~\ref{eq:xgboost} the xgboost equation also served to avoid overfitting of the disease categories that had small training data.
 
 \subsection{Why Naive Bayes Struggled}
 
-Naive Bayes performed worst across all metrics, which was not surprising but still worth examining. The reason is its independence assumption: it assumes that symptoms are conditionally independent given the disease. In other words, it assumes that knowing you have a fever doesn't change the probability of having a headache if you already know the disease.
+Naive Bayes was the lowest in all metrics, and it was not unexpected but worthy of investigation. This is because it makes an independence assumption: it assumes that the symptoms are conditionally independent with the disease. This is to say it is assumed that being aware of having a fever does not alter the likelihood of having a headache when being aware of having the disease.
 
-This assumption is clearly wrong for symptom data. Certain symptoms co-occur because they are caused by the same underlying pathology. For instance, if you have a respiratory infection, you are more likely to have both cough and chest pain together than you would expect from their individual probabilities. Naive Bayes cannot model this, which limits its accuracy.
+This is a wrong assumption, evidently, when it comes to symptom data. Some of these symptoms are co-morbid since they are caused by a common pathology. As an example, when you have a respiratory infection, you will have both cough and chest pain together more often than you would in the absence of each other given the probability of each of them. Naive Bayes is unable to model this and this limits its accuracy.
 
-Despite this limitation, Naive Bayes is still useful as a baseline. It trains in seconds, requires minimal hyperparameter tuning, and gives you a floor on what more complex methods should beat. If a complex method like XGBoost only barely beats Naive Bayes, that suggests the problem is simple and doesn't require much modeling capacity.
+Despite this limitation, Naive Bayes is still useful as a baseline. It learns within a few seconds, needs only a few hyperparameter tweaks and provides you with a guarantee of how well more complicated procedures should perform. When a complicated algorithm such as XGBoost can just marginally outperform Naive Bayes, that is an indication that the task is not complicated and does not need extensive modeling power.
 
 \subsection{Scaling with Data}
 
-When moving from Dataset~1 to Dataset~2, the ranking changed instead of improving uniformly for all models. Naive Bayes achieved the best accuracy on Dataset~2, Logistic Regression remained competitive, and the more complex models were no longer clearly dominant. In my view, this indicates that dataset structure (especially class count and symptom overlap) can matter as much as model complexity.
+The ranking between Dataset~1 and Dataset2 was not improving uniformly across all models, but rather changing. Naive Bayes was the most accurate on Dataset 2, Logistic Regression was also competitive and the more complex models could no longer be clearly dominant. To me, this suggests that the structure of the data (particularly the number of classes and overlapping of symptoms) can be as important as model complexity.
 
-This suggests that if you have access to large amounts of training data, you should definitely use an ensemble method. But if you are working with a small dataset (e.g., from a small clinic with only a few hundred patient records), the gap between ensemble methods and simpler baselines might be smaller. I would still recommend trying Random Forest or XGBoost first, but Logistic Regression or even Naive Bayes might be good enough for a prototype.
+It implies that you should use an ensemble approach in case you have plenty of training data. However, when dealing with a small dataset (e.g., of a small clinic having a few hundred patient records), the difference between the ensemble approaches and more basic baselines may be less. Random Forest or XGBoost would be my first choice but Logistic Regression or even Naive Bayes could work well as a prototype.
 
 \subsection{Error Patterns}
 
-Looking at the confusion matrices (Section~\ref{sec:error_analysis}), I noticed that most errors happen between diseases with overlapping symptoms. This is expected and not necessarily a problem for the booking use case. If the model confuses two dermatological conditions, the patient still ends up booking with a dermatologist. The error only matters if it causes the patient to book with the wrong type of specialist.
+By comparing the confusion matrices (Section~\ref{sec:error_analysis}), I found that the majority of the errors occur between the diseases that have similar symptoms. This will be natural and not necessarily an issue to the booking use case. When the model misleads two dermatological conditions, the patient will still book the dermatologist. The mistake is only relevant in the case that it leads to the patient making a reservation with the specialist of the wrong type.
 
-Some confusion pairs are more problematic. For instance, if the model confuses a serious respiratory condition like pneumonia with a mild condition like the common cold, that could delay urgent treatment. A practical deployment would need to identify these high-risk confusion pairs and add safeguards. One approach is to flag low-confidence predictions and route those patients to a general practitioner instead of a specialist.
+Certainly, some problematic pairs are more confusing. As an example, when the model mistakes a serious respiratory infection such as pneumonia with a mild infection such as the common cold, it may postpone a vital treatment. An actual implementation would require determining these high-risk confusion pairs and implement protection. The first method is to indicate low-confidence predictions and refer such patients to a general practitioner rather than a specialist.
 
 \section{Trade-offs Between Models}
 \label{sec:tradeoffs}
 
-Raw performance numbers do not tell the whole story. The choice of classifier for a real deployment depends on several practical factors beyond accuracy and F1-score. This section discusses the trade-offs that would matter in practice.
+Raw numbers of performance do not reveal everything. The practical factors to use in the selection of the classifier to use in an actual deployment vary depending on a number of practical factors. The trade-offs that would be of practical concern are discussed in this section.
 
 \subsection{Interpretability}
 
-Logistic Regression is the most transparent model. Its coefficients directly show which symptoms push the prediction toward which disease. For example, if the coefficient for ``yellowish\_skin'' is strongly positive for hepatitis, that means the presence of this symptom increases the probability of a hepatitis prediction. If a doctor wants to know why the system recommended a dermatologist, Logistic Regression can provide a clear answer by showing which symptoms had the largest contribution to that prediction.
+The model that is most transparent is the Logistic Regression. Its coefficients are a direct indication of which symptoms drive the prediction to which disease. An illustration is that when the coefficient of "yellowish\_skin" is highly positive with hepatitis, it implies that the occurrence of this symptom is likely to raise the likelihood of a hepatitis prediction. In case a physician is interested in why the system suggested a dermatologist, the answer to this question is easy to see with the help of Logistic Regression since it will demonstrate which symptoms contributed most to the said prediction.
 
-Random Forest and XGBoost offer feature importance rankings (Section~\ref{sec:feature_importance}) but cannot easily explain individual predictions. Feature importance tells you which symptoms matter most on average across all predictions, but it doesn't tell you why the model made a specific prediction for a specific patient. There are tools like SHAP (SHapley Additive exPlanations) that can provide per-prediction explanations for tree-based models, but these add complexity and computation time.
+Random Forest and XGBoost provide a ranking of feature importance (Section~\ref{sec:feature_importance}) but do not provide an easy way to explain individual predictions. Feature importance informs you of which symptoms are significant on average over all the predictions, but not the reason the model made a particular prediction of a particular patient. Some tools such as SHAP (SHapley Additive exPlanations) can produce per-prediction explanations of tree-based models but they are more complex and slow to compute.
 
-Naive Bayes is technically interpretable because you can see the class probabilities and how each symptom contributes to them. However, the results often don't make intuitive sense because of the independence assumption. For instance, Naive Bayes might assign high probability to a disease even when a key symptom is missing, simply because the other symptoms are common.
+Naive Bayes is interpretable technically since you can view the class probabilities and the contribution of each symptom towards the same. Nonetheless, the findings do not usually make intuitive sense due to the independence assumption. As an example, Naive Bayes could be giving a disease a high probability even when one of its major symptoms is absent, just because the other symptoms are frequent.
 
-The EU AI Act's transparency requirements \citep{EUAI2024} favor interpretable models. If a healthcare provider has to explain to a regulator or an auditor why the system made certain predictions, Logistic Regression is much easier to document and justify than XGBoost.
+The transparency provisions of the EU AI Act \citep{EUAI2024} prefer interpretable models. In case a healthcare professional is required to provide a regulator or an auditor with an explanation as to why the system made certain predictions, Logistic Regression is far easier to prove and explain compared with XGBoost.
 
 \subsection{Training and Prediction Speed}
 
-Naive Bayes and Logistic Regression train in seconds even on Dataset~2. This makes them suitable for scenarios where the model needs to be retrained frequently, for example, if new data is added every day. XGBoost and Random Forest take longer to train --- minutes to hours depending on the hyperparameter search space --- though prediction speed at inference time is fast enough for real-time use.
+Naive Bayes and Logistic Regression can be trained in a matter of seconds even with Dataset~2. This is why they are applicable in the situation when the model should be retrained regularly, such as in the case of adding new data on a daily basis. XGBoost and Random Forest are slower to train, minutes to hours in relation to the hyperparameter search space, but are fast enough to make predictions at inference time to be used in real-time.
 
-SVM was the slowest by a large margin due to its one-vs-one multi-class strategy, which trains $C(C-1)/2$ binary classifiers for $C$ classes. With 41 disease classes, this means training 820 separate SVM models. For a mobile health app that needs to update its model frequently, this is impractical.
+SVM was by far the slowest because of its one-vs-one multi-class approach, which fits $C(C-1)/2$ binary classifiers per $C$ classes. This has 41 classes of diseases, and thus 820 distinct SVM models are trained. This is impractical in the case of a mobile health app that requires frequent updates of its model.
 
-Training time matters less for a system that is deployed once and then runs for months without updates. But if the system needs to adapt to changing disease patterns (e.g., a new flu strain emerges and changes symptom-disease associations), faster training is an advantage.
+It is not so important in a system where training is done once and then it is left to run during months without updating. However, when the system must adjust to new disease patterns (i.e. a new strain of flu arises and modifies symptom-disease relationship), it is beneficial to have faster training.
 
-Prediction speed is less of a concern for all the classifiers I tested. Even XGBoost with 200 trees can make predictions in milliseconds, which is fast enough for an interactive web or mobile app. The user will not notice the difference between a 5ms prediction and a 50ms prediction.
+All the classifiers that I tested are less concerned with prediction speed. Even 200-trees of XGBoost can take a few milliseconds to make a prediction, fast enough to provide an interactive web or mobile application. The user will not see the difference between a prediction of 5ms and 50ms.
 
 \subsection{Handling Rare Diseases}
 
-XGBoost and Random Forest with class weighting showed the best recall on rare disease classes. Recall measures how many true cases of a disease the model actually catches, which is particularly important for rare diseases. If a rare disease appears 50 times in the training set, a model that ignores it entirely will barely affect the overall accuracy (since it is only 1\% of the data), but it will have 0\% recall for that disease.
+Random Forest with class weighting and XGBoost had the highest recall on the rare disease classes. Recall is a measure of the number of cases of a disease that the model is actually catching, which is of particular interest to rare diseases. In the case of a rare disease that occurs 50 times in the training set, a model that does not care about this disease will have a negligible impact on the overall accuracy (because it is only 1 percent of the data), but will have 0 percent recall on this disease.
 
-Naive Bayes struggled most with imbalanced classes, tending to over-predict common diseases. This is because it estimates class probabilities from the training data frequencies, so rare diseases get assigned low prior probabilities. Even if the symptoms strongly suggest a rare disease, Naive Bayes might still predict a common disease because the prior pulls the prediction toward common outcomes.
+Naive Bayes worked best when the number of classes was imbalanced with common diseases being over-predicted. The reason is that it approximates the class probabilities using the training data frequencies thus rare diseases receive low prior probabilities. Naive Bayes may still predict a common disease even when the symptoms are strongly indicative of a rare disease due to the fact that the prior pulls the prediction in the common direction.
 
-Logistic Regression with class weighting performed reasonably well on rare diseases, better than Naive Bayes but not as good as the ensemble methods. SVM with class weighting also handled rare diseases decently, but its slow training time makes it less practical.
+Class weighted Logistic Regression was reasonable on rare diseases which was better than Naive Bayes but not as good as the ensemble methods. SVM using class weighting also performed reasonably on rare diseases, but is not as practical due to its slow training time.
 
 \subsection{Model Size and Deployment Constraints}
 
-Another consideration is model size. Logistic Regression and Naive Bayes have tiny models (a few kilobytes) that can easily be deployed in a mobile app or embedded in a web page. Random Forest and XGBoost models are larger (a few megabytes), though still small enough for modern deployment scenarios. This only becomes a concern if you are deploying to very resource-constrained devices.
+The other factor is model size. Naive Bayes and Logistic Regression are small (few kilobytes) models that can be easily embedded in a mobile application or within a web page. Random Forest and XGBoost models are bigger (several megabytes), but not too large to be deployed in modern settings. This can be an issue only when you are deploying to extremely resource-constrained devices.
 
 \subsection{My Recommendation}
 
-For a real healthcare booking system, I would deploy XGBoost or Random Forest as the primary classifier. The performance advantage is large enough to justify the slightly longer training time and reduced interpretability. Between the two, XGBoost has a slight edge in accuracy and handles rare diseases better, so I would choose XGBoost if I had to pick one.
+In the case of a real healthcare booking system, the XGBoost or Random Forest would be installed as the main classifier. The performance difference is substantial enough to be warranted by the marginally increased training period and lower interpretability. XGBoost is a little more accurate and better in dealing with rare diseases between the two, so I would pick XGBoost in the event that I needed to choose.
 
-However, I would keep a Logistic Regression model available as a secondary option. When a doctor or regulator asks ``why did the system suggest this specialist?'', Logistic Regression provides a clear answer. Having an interpretable fallback is worth the slightly lower accuracy, especially for high-stakes predictions where transparency matters more than squeezing out an extra percentage point of performance.
+But a Logistic Regression model is a second option that I would have. Logistic Regression can give a straightforward response when a doctor or a regulator poses a question such as, "why did the system recommend this specialist?" The ability to have an interpretable fallback is worth the reduced accuracy, particularly when making high stakes predictions that have transparency as more important than a few percentage points of better performance.
 
-Another use for Logistic Regression is as a confidence check. If XGBoost and Logistic Regression agree on a prediction, that is a strong signal. If they disagree, that suggests the prediction might be uncertain, and the patient should be directed to a general practitioner instead of a specialist.
-
+The other application of Logistic Regression is a confidence check. When XGBoost and Logistic regression come to an agreement on a prediction, it is a good indication. In case of disagreement, it implies that the prediction can be erroneous, and a general practitioner should refer the patient to a specialist.
 \section{Limitations and Concerns}
 \label{sec:limitations}
 
 This study has several limitations that I want to be upfront about.
 
-\textbf{No external validation.} This is the biggest limitation. I evaluated the classifiers using cross-validation and a held-out test set from the same data distribution. I did not test on an independent clinical dataset from a real hospital or clinic. Models that work well on Kaggle data may fail with a different patient population that has different symptom reporting habits, disease prevalence, or data quality.
+\textbf{No external validation.} This is the greatest shortcoming. I tested the classifiers on cross-validation and a held-out test set of the same data distribution. The test is not done on an independent clinical dataset of a real hospital or clinic. The models that perform well on the Kaggle data might not perform well on a different patient population with different symptom reporting behaviors, disease prevalence, and data quality.
 
-For example, the Kaggle datasets might have cleaner, more consistent symptom labels than what you would get from actual patient self-reports. Patients might interpret symptom questions differently, forget symptoms, or over-report based on what they read online. The disease distribution in the training data might not match the distribution in the target deployment location --- a clinic in a tropical region will see different diseases than a clinic in northern Europe.
+An example is that the Kaggle datasets may contain cleaner, more uniform labels of symptoms than that which you would obtain through actual patient self-reports. Patients may interpret symptom questions in a different way, forget, over-report what they read online. The distribution of the disease in the training data may not be the same in the place of deployment namely a clinic in a tropical area and a clinic in northern Europe.
 
-The accuracy numbers in Chapter~\ref{ch:results} should be treated as optimistic upper bounds. In a real deployment, I would expect performance to be several percentage points lower until the model is retrained on data from the actual patient population.
+The numbers of accuracy in Chapter~\ref{ch:results}: results should be used as optimistic upper limits. In a realistic deployment, I would anticipate a performance several percentage points below until the model is retrained on data of the real patient population.
 
-\textbf{Simplified symptom representation.} The binary encoding doesn't capture severity, duration, or the order symptoms appeared in. A doctor would use all of this information when making a diagnosis. For example, a headache that started suddenly two hours ago is very different from a headache that has been mild and persistent for two weeks. The datasets don't provide this temporal or severity information, which limits what the classifiers can learn.
+\textbf{Simplified symptom representation.} . The binary representation does not represent severity, duration, or the sequence in which the symptoms were experienced. All of this information would be utilized by a doctor during a diagnosis. Taking an example, a sudden onset headache two hours ago would be very different to a two-week headache that is mild and persistent. This temporal or severity information is not available in the datasets hence restricting the learning of the classifiers.
 
-Some symptoms also have different meanings depending on context. "Fatigue" could mean anything from "I feel a bit tired" to "I can barely get out of bed." Binary encoding treats all of these the same, which loses important nuance.
+There are also some symptoms that are context specific. "Fatigue" may refer to the fact that "I feel a little tired" and may refer to the fact that "I can hardly get out of bed". Binary encoding lumps all these together, and this is important nuance that is lost.
 
-\textbf{Single-disease assumption.} The datasets assign exactly one disease per patient. In reality, patients often have multiple conditions at the same time (comorbidities). A patient with both diabetes and a skin condition would be mishandled by a single-label classifier, which would force a choice between the two rather than recognizing both.
+\textbf{Single-disease assumption.} The datasets have one disease per patient. The truth of the matter is that patients are frequently affected by several conditions simultaneously (comorbidities). A patient with a skin problem and diabetes would be mismanaged by a single-label classifier which would compel to choose one over the other instead of identifying both.
 
-Multi-label classification is technically feasible --- instead of predicting one disease, the model predicts a set of diseases. However, this requires training data where each patient is labeled with all of their conditions, not just the primary one. Neither of the datasets I used supports this, so I was limited to single-label classification.
+Multi-label classification can be technically achieved, but rather than making a single prediction of the disease, the model makes a prediction of a group of diseases. This, however, needs training data in which each patient is assigned all of their conditions, not the primary one. My two datasets do not support this and therefore I was restricted to single-label classification.
 
-\textbf{No demographic features.} Age, sex, and medical history are important for diagnosis but aren't in either dataset. A rash in a 70-year-old is clinically different from the same rash in a 5-year-old. Some diseases are more common in men than women or vice versa. Past medical conditions affect the probability of future ones.
+\textbf{No demographic features.}. Age, sex, and medical history are significant to diagnose but are not present in both datasets. In a 70-year-old, the rash is clinically different in a 5-year-old. Certain diseases are prevalent in men as compared to women or vice versa. The past medical conditions influence the chance of occurrence of future ones.
 
-Adding demographic features would likely improve performance, but it would also raise additional fairness and privacy concerns. If the model uses age and sex to make predictions, you need to verify that it doesn't discriminate unfairly (e.g., systematically under-diagnosing certain diseases in women because they are less represented in the training data for those diseases).
+The inclusion of demographic characteristics would probably enhance performance, yet it would invite more equity and privacy issues. When the model is based on age and sex to make predictions, you should ensure it is not unfairly discriminating (e.g. because women are underrepresented in the training data of a particular disease, the model is more likely to underdiagnose it in women).
 
-\textbf{Hyperparameter search wasn't exhaustive.} I used grid search with predefined ranges (documented in Appendix~\ref{app:hyperparameters}). Bayesian optimization or random search over wider ranges might find slightly better configurations. However, I doubt this would change the relative ranking of classifiers. If XGBoost beats Random Forest with my chosen hyperparameters, it would almost certainly still beat Random Forest with better-tuned hyperparameters, since both would benefit from better tuning.
+\textbf{Hyperparameter search wasn't exhaustive.} I applied grid search with preset ranges (described in Appendix~\ref{app:hyperparameters}). Slightly better configurations could be found using Bayesian optimization or random search of larger ranges. Nevertheless, I do not believe that this would shift the relative positions of classifiers. When XGBoost beats random forest using my selected hyperparameters, it would surely still beat the random forest having better-tuned hyperparameters, as either would have been improved by better tuning.
 
-\textbf{No cost-sensitive evaluation.} I treated all misclassification errors as equally bad, but in reality, some errors are worse than others. Missing a serious disease is worse than incorrectly predicting a mild one. A proper deployment would assign costs to different error types and optimize for that, rather than optimizing for overall F1-score. This would require input from doctors about which errors matter most.
+\textbf{No cost-sensitive evaluation.} I considered all the errors in misclassification as equally bad, but in practice, certain errors are worse than others. False prediction of a mild disease is not as bad as missing a serious one. An adequate deployment would assign costs to various error types and optimize those, instead of optimizing the overall F1-score. This would involve the input of doctors concerning the errors that are most important.
 
 \section{Ethical Considerations}
 \label{sec:ethics}
 
-Deploying disease prediction models in healthcare raises issues that go beyond technical performance. This section discusses the main ethical and legal concerns that would need to be addressed before a real deployment.
+The implementation of disease prediction models in the healthcare setting brings about concerns beyond technical performance. In this section, the author mentions principal ethical and legal issues that would have to be resolved prior to a real deployment.
 
 \subsection{Patient Safety}
 
-A wrong prediction can lead to a wrong booking. If the model says ``dermatologist'' but the patient actually needs a cardiologist, the delay could be dangerous. In the worst case, a patient with a serious condition like a heart attack could be routed to the wrong specialist, delaying life-saving treatment.
+Any wrong prediction may result in a wrong booking. When the model indicates "dermatologist", but the patient requires a cardiologist the wait might be fatal. At worst, a patient with a severe condition such as a heart attack may end up with the wrong specialist, and the life-saving treatment will be postponed.
 
-Any deployed system must clearly communicate that its predictions are suggestions, not diagnoses. The interface should show something like: ``Based on your symptoms, you might benefit from seeing a dermatologist. However, if you have severe or worsening symptoms, please seek urgent care immediately.'' The system is meant to assist decision-making, not replace clinical judgment.
+Any deployed system should explicitly convey the idea that its predictions are recommendations and not diagnoses. The interface must display something of the nature: "Based on your symptoms, you may want to see a dermatologist. But in case you experience serious or deteriorating symptoms, you should be seen immediately and take urgent treatment". The system should only be used to aid in the making of decisions, and not to substitute clinical judgment.
 
-Another safety concern is over-reliance on the system. If patients start trusting the AI too much, they might ignore their own intuition or delay seeking help when symptoms worsen. The system should encourage users to see a doctor if they are uncertain, rather than framing the prediction as definitive.
+The other safety issue is excessive dependence on the system. Patients may begin to place too much trust in the AI and thus overlook their own intuition or wait to see symptoms become more severe. The system must be designed to make the users visit a doctor when they are in doubt, but not make it seem like the prediction is final.
 
-\subsection{Data Protection and GDPR Compliance}
-
-Health data is a special category under the GDPR \citep{GDPR2016}. Article 9 classifies health information as sensitive personal data subject to heightened protections. Processing health data in a symptom-based prediction system requires compliance with several key provisions:
+In this section, the researcher will examine how the business will address matters related to data protection and GDPR compliance.
+\subsection{Data Protection and GDPR Compliance} 
+Health data is a category of exceptional data with respect to the GDPR \citep{GDPR2016}. Article 9 categorizes health information as sensitive personal data that is prone to greater protection. To process health data in a symptom-based prediction system, it is necessary to comply with some major provisions:
 
 \begin{itemize}
     \item \textbf{Lawful basis and explicit consent (Art. 6, 9):} Patients must actively agree to symptom data processing through consent that is specific, informed, freely given, and unambiguous. Pre-checked boxes or implied consent do not meet the threshold for explicit consent.
@@ -133,42 +132,42 @@ Health data is a special category under the GDPR \citep{GDPR2016}. Article 9 cla
     \item \textbf{Security measures (Art. 32):} Health data must be protected through appropriate technical and organizational measures, including encryption in transit (e.g., TLS/HTTPS) and at rest (e.g., encrypted storage), along with access controls limiting system interaction to authorized personnel.
 \end{itemize}
 
-A deployed system would need to minimize what data it stores. Ideally, symptom data should be processed in real-time and not stored permanently unless the patient explicitly opts in to save their history. Logs and analytics should be anonymized so that individual patients cannot be identified.
+An operational system would have to reduce the data that it retains. Preferably, no permanent storage of symptom data would be done unless the patient actively chooses to keep their history. The logs and analytics must be anonymized to ensure that single patients are not identified.
 
 \subsection{EU AI Act Requirements}
 
-The recently enacted EU AI Act \citep{EUAI2024} designates medical diagnostic AI systems as high-risk under Annex III (category 5b: AI systems intended for diagnosis or treatment). This classification triggers mandatory compliance obligations for any commercial deployment:
+In the newly adopted EU AI Act \citep{EUAI2024}, medical diagnostic AI systems are high-risk as specified in Annex III (category 5b: AI systems that are designed to identify a diagnosis or treatment). This category provokes and evokes the obligatory compliance requirements of any business implementation:
 
 \begin{itemize}
-    \item \textbf{Conformity assessment (Art. 43):} Prior to market placement, high-risk AI systems must undergo conformity assessment procedures verifying compliance with safety and performance requirements. This necessitates comprehensive technical documentation covering system design, training datasets, validation procedures, and risk mitigation strategies.
-    \item \textbf{Risk management system (Art. 9):} Providers must establish and maintain documented risk management processes throughout the system lifecycle. This includes identifying reasonably foreseeable risks (incorrect predictions, algorithmic bias, security vulnerabilities), implementing mitigation measures, and establishing post-market monitoring to detect performance degradation.
-    \item \textbf{Human oversight provisions (Art. 14):} High-risk systems must be designed to enable effective human oversight through human-in-the-loop or human-on-the-loop mechanisms. For symptom-based booking systems, this could be operationalized through clinical review of low-confidence predictions or systematic auditing of specialist referral patterns.
-    \item \textbf{Transparency obligations (Art. 13):} Systems must provide users with clear, accessible information about system capabilities, operational logic, data utilization, and known limitations. These requirements favor interpretable architectures (e.g., Logistic Regression) over opaque models where explanation mechanisms are limited.
-    \item \textbf{Accuracy and robustness requirements (Art. 15):} Systems must achieve and maintain appropriate accuracy levels relative to their intended purpose. Providers bear responsibility for ongoing performance monitoring and model maintenance, including retraining when accuracy metrics decline.
+    \item \textbf{Conformity assessment (Art. 43):} Before being placed in the market high-risk AI systems should be subjected to conformity assessment procedures that confirm that they have met safety and performance requirements. This will require detailed technical documentation such as system design, training data, validation processes, and risk alleviation mechanisms.
+    \item \textbf{Risk management system (Art. 9):} Providers should define and operate documented risk management processes to the system lifecycle. This involves identifying risks that are reasonably foreseeable (incorrect predictions, algorithmic bias, security vulnerabilities), mitigating them, and instituting post-market monitoring to identify performance degradation.
+    \item \textbf{Human oversight provisions (Art. 14):} High-risk systems shall be constructed in a way that makes human oversight effective by means of human-in-the-loop or human-on-the-loop functionality. In the case of symptom-based booking systems, this may be operationalised by clinical examination of low-confidence predictions or systematised auditing of specialist referral patterns.
+    \item \textbf{Transparency obligations (Art. 13):} Systems should give users clear, accessible information concerning system capabilities, logic of operation, use of data, and known limitations. These needs prefer interpretable architectures (e.g., Logistic Regression) to opaque models with a restricted explanation mechanism.
+    \item \textbf{Accuracy and robustness requirements (Art. 15):} Systems should be able to reach and sustain the proper accuracy levels with regard to the intended purpose. It is the responsibility of providers to perform continuous performance controls and model maintenance, such as retraining when the accuracy metrics deteriorate.
 \end{itemize}
 
-These obligations are legally binding. Under Article 99 of the EU AI Act, non-compliance can result in administrative fines up to €15 million or 3\% of total worldwide annual turnover, whichever amount is higher.
+These are the requirements that are legally binding. Article 99 of the EU AI Act provides that failure to comply may lead to an administrative penalty of up to 15 million Euro or 3 percent of the overall global annual turnover, whichever is greater.
 
-The EU AI Act also requires technical documentation that includes the training data, model architecture, hyperparameters, and performance metrics. This means that all the experimental details documented in this thesis (Chapter~\ref{ch:methodology} and Appendix~\ref{app:supplementary}) would be required for a real deployment, not just for academic purposes.
+EU AI Act also demands the technical documentation of the training data, model architecture, hyperparameters, and performance measures. It implies that everything that was described in the experiments in this thesis (Chapter~\ref{ch:methodology} and Appendix~\ref{app:supplementary}), would need to be applied in an actual deployment, not just in academics.
 
 \subsection{Algorithmic Bias and Fairness}
 
-If the training data over-represents certain demographics, the model will perform worse for underrepresented groups. For example, if the dataset mostly contains data from young adults, the model might not work as well for elderly patients who present with different symptom patterns due to age-related comorbidities.
+When the training data is biased towards some demographics, the model will perform poorly in the underrepresented groups. As an illustration, when the dataset primarily consists of the data of young adults, the model may not be as effective with the elderly patients whose symptoms appear differently because of age-related comorbidities.
 
-Neither of the datasets I used includes demographic information like age, sex, or ethnicity, so I cannot evaluate whether the classifiers are biased along these dimensions. Before deploying this kind of system, fairness audits across age, sex, and ethnicity would be necessary. The audits would check whether the model's accuracy, precision, and recall are consistent across different demographic groups.
+Both datasets that I used do not include demographic data, such as age, sex, or ethnicity, which means that I cannot assess whether the classifiers are biased, based on these factors. Prior to implementation of such a system, there would be need to have fairness audit in terms of age, sex, and ethnicity. The audits would verify that the accuracy, precision and recall of the model is similar among various demographic groups.
 
-If the model performs worse for certain groups, that would violate both the GDPR's non-discrimination requirements and the EU AI Act's fairness requirements. The provider would need to either collect more representative training data or adjust the model (e.g., through fairness-aware training methods) to equalize performance across groups.
+In case the model is found to be worse in terms of some groups, it would breach the non-discrimination provisions of the GDPR and the fairness provisions of the EU AI Act. Either the provider would have to gather more representative training data or to equalise performance between groups, the model would have to be modified (e.g. by using fairness-aware training methods).
 
-Another bias concern is language and health literacy. If the symptom questionnaire is written in complex medical language, patients with lower health literacy might struggle to answer accurately, which would lead to worse predictions for this group. The interface design is as important as the model itself.
+The other bias issue is language and health literacy. When the symptom questionnaire is composed using complicated medical terminology, less health literate patients may not respond correctly and this would produce poor predictions among this population. The model is equally important as the interface design.
 
 \section{Practical Deployment Considerations}
 \label{sec:deployment}
 
-Turning these experimental results into a working system involves several steps that are beyond this thesis's scope but worth outlining. This section discusses what a practical implementation would look like and what challenges would need to be addressed.
+To convert these experimental findings into a working system, there are a number of steps which are outside the bounds of this thesis, but which it is worth describing. This section explains how a real-life implementation would appear and what difficulties would have to be overcome.
 
 \subsection{System Architecture}
 
-A practical system would consist of several components:
+An actual system would comprise a number of elements:
 
 \begin{enumerate}
     \item \textbf{User interface:} A web or mobile app that presents patients with a symptom checklist. The interface should be simple and use plain language rather than medical jargon. For each symptom, the patient checks a box if they are experiencing it.
@@ -178,51 +177,51 @@ A practical system would consist of several components:
     \item \textbf{Booking system integration:} The system queries available appointment slots for the suggested specialist and presents them to the patient.
 \end{enumerate}
 
-The entire prediction pipeline --- from symptom checklist to specialist suggestion --- should take less than a second, so that the user experience feels responsive.
+The complete prediction system - symptom checklist to specialist recommendation - must be less than a second, to give the user experience a sense of responsiveness.
 
 \subsection{Confidence Thresholds}
 
-Not every prediction should be acted on. If the model's confidence is too low, the patient should be directed to a general practitioner instead of a specialist. Setting this threshold means balancing false referrals against missed diagnoses --- a decision that needs medical professionals involved, not just engineers.
+Not all predictions are to be acted. In case the model has low confidence, then the patient must be referred to a general practitioner rather than a specialist. By establishing such a threshold, it is a matter of tradeoffs between false referral and missed diagnosis - a move that must involve medical professionals, not only engineers.
 
-For example, suppose the model predicts "diabetes" with 85\% confidence. That is high enough that routing the patient to an endocrinologist makes sense. But if the model predicts "diabetes" with 55\% confidence, that suggests the symptoms are ambiguous. In that case, the system should recommend seeing a GP who can do a proper assessment rather than making a potentially wrong specialist referral.
+To give an example, the model predicts "diabetes" with 85 percent accuracy. That is so much that it is reasonable to refer the patient to an endocrinologist. However, when the model states that there is a 55 percent chance of the presence of diabetes, this indicates that the symptoms are unclear. Then, instead of making a potentially incorrect specialist referral, the system is supposed to suggest that one should visit a GP who can perform a proper assessment.
 
-A reasonable approach would be to set a confidence threshold (e.g., 70\%) below which all patients get directed to a GP. The exact threshold would need to be determined through pilot testing with real patients and feedback from doctors about how many inappropriate referrals they are seeing.
+One possible solution would be to establish a confidence level (e.g., 70 percent) below which every patient is referred to a GP. The specific threshold would require pilot testing using real patients and a response of the doctors regarding the number of inappropriate referrals they are receiving.
 
-Another approach is to use the model's uncertainty to decide. If the top two predicted diseases are very close in probability (e.g., 52\% vs. 48\%), that indicates high uncertainty, and the system should be cautious. If the top prediction is 85\% and the second is only 10\%, that is a strong signal, and the system can be more confident in its suggestion.
+The other strategy is to make decisions based on the uncertainty of the model. When the two most likely diseases are very close to each other (e.g., 52 percent vs. 48 percent) then the system has high uncertainty and should be careful. When the highest prediction is 85\% and the second only 10 percent, that is then a high signal and the system can be more assured to make the suggestion.
 
 \subsection{Handling Edge Cases}
 
-Several edge cases would need to be handled:
+There are a number of edge cases that would have to be managed:
 
 \begin{itemize}
-    \item \textbf{Emergency symptoms:} If the patient reports symptoms that could indicate a medical emergency (e.g., chest pain, difficulty breathing, severe bleeding), the system should immediately recommend calling emergency services or going to an emergency department, bypassing the classifier entirely. This can be done with simple rule-based logic that checks for these symptoms before running the ML model.
-    \item \textbf{No symptoms selected:} If the patient doesn't check any symptoms, the system cannot make a prediction. It should prompt the user to select at least one symptom or provide a free-text field for describing their condition.
-    \item \textbf{Very rare symptom combinations:} If the patient reports a symptom combination that never appeared in the training data, the model's prediction might be unreliable. The system could detect this by measuring the distance to the nearest training example and flagging cases that are far from anything the model has seen before.
+    \item \textbf{Emergency symptoms:} In case the patient has such symptoms that may suggest a medical emergency (e.g., chest pain, difficulty breathing, severe bleeding), the system must override the classifier and suggest calling emergency services or visiting an emergency department directly. This is achievable through simple rule-based logic that verifies these symptoms prior to the ML model.
+    \item \textbf{No symptoms selected:} In case the patient does not check any symptoms, the system will not be able to make a prediction. It ought to make the user choose at least one of the symptoms or leave a free-text entry field to write about their condition.
+    \item \textbf{Very rare symptom combinations:} If the patient presents a combination of symptoms that did not occur in the training data, the prediction of the model may be inaccurate. The system could signal this by the distance of the closest training example and indicate that cases that are distant to anything that the model has encountered in the past.
 \end{itemize}
 
 \subsection{Monitoring and Maintenance}
 
-Any deployed model would need continuous monitoring. Disease patterns change, new diseases emerge (as we saw with COVID-19), and the patient population using the system might differ from the training data. Periodic retraining and performance checks would be necessary to catch degradation before it harms patients.
+Any implemented model would require constant surveillance. Patterns of diseases shift, new diseases appear (as in the case of COVID-19), and the number of patients utilizing the system may not match the training data. Re-training and performance reviews would be required periodically to identify degradation before it can harm patients.
 
-Monitoring should track several metrics:
+A number of metrics should be monitored:
 
 \begin{itemize}
-    \item \textbf{Prediction accuracy:} If the system's predictions start being wrong more often, that signals a problem. This requires feedback from doctors about whether the specialist referrals were appropriate.
-    \item \textbf{Prediction distribution:} If the model suddenly starts predicting one disease much more often than usual, that could indicate either a real disease outbreak or a data shift. For example, during flu season, an increase in flu predictions is expected. But an increase in rare disease predictions might indicate a data quality issue.
-    \item \textbf{User feedback:} The system should ask users whether the specialist recommendation was helpful. If many users report that the suggestion was wrong, that is a signal to investigate.
-    \item \textbf{Coverage:} What percentage of users are getting high-confidence predictions versus being directed to a GP? If too many users are getting low-confidence predictions, the model might not be useful.
+    \item \textbf{Prediction accuracy:}  When the system begins to give incorrect predictions more frequently, then this is an indicator of a problem. This involves the doctors giving feedback on whether the specialist referrals were reasonable.
+    \item \textbf{Prediction distribution:} When the model abruptly starts to predict one disease with a significantly higher frequency than normal then this may be a sign of a real disease outbreak or a data shift. E.g., in case of flu season, there would be an increase in the predictions of flu. However, more forecasts of rare diseases could be a sign of a problem with data quality.
+    \item \textbf{User feedback:}  The system must inquire users on the usefulness of the specialist recommendation. When a number of users tell them that the suggestion was not the right one, that is an indicator that needs to be looked into.
+    \item \textbf{Coverage:} How high-confidence predictions versus being sent to a GP are the user set? When the model is giving low-confidence predictions to too many users, the model may not be of use.
 \end{itemize}
 
-Retraining should happen periodically, perhaps quarterly or when performance drops below a threshold. The retraining process would involve collecting new data (anonymized patient records with symptoms and confirmed diagnoses), adding it to the training set, and re-running the hyperparameter search and evaluation pipeline documented in this thesis.
+The retraining ought to be periodical e.g. once a quarter or when performance declines to a certain point. The retraining would include gathering new data (anonymized patient records including symptoms and confirmed diagnoses) and including it in the training set and re-executing the hyperparameter search and evaluation pipeline that was reported in this thesis.
 
 \subsection{Integration with Existing Systems}
 
-A real deployment would need to integrate with existing healthcare IT systems. This includes:
+An actual implementation would be required to interoperate with extant healthcare information technology. This includes:
 
 \begin{itemize}
-    \item \textbf{Electronic health records (EHR):} If the patient's medical history is available, it could be used as additional features to improve predictions. For instance, a patient with a history of heart disease should be routed differently than a patient with no prior conditions.
-    \item \textbf{Appointment scheduling systems:} The system needs to query available appointment slots and allow patients to book them directly.
-    \item \textbf{Insurance and billing:} The system might need to check whether the patient's insurance covers visits to the suggested specialist.
+    \item \textbf{Electronic health records (EHR):} In case the medical history of the patient is accessible, it may be provided as extra characteristics to enhance predictions. As an example, a patient with a heart disease history should be directed in a different manner as compared with a patient without a history of any diseases.
+    \item \textbf{Appointment scheduling systems:} The system must be able to query the available appointment slots and enable patients to book directly.
+    \item \textbf{Insurance and billing:} The system may have to verify whether the visits to the proposed specialist are covered by the insurance of the patient.
 \end{itemize}
 
-These integrations are technically straightforward but require coordination with multiple stakeholders and compliance with healthcare IT standards like HL7 or FHIR.
+Such integrations are not complicated technically but need to be coordinated with a number of other stakeholders and adhere to healthcare IT standards such as HL7 or FHIR.
