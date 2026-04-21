@@ -33,7 +33,7 @@ In addition to the technical comparison, this thesis explains the practical and 
 \section{Problem Statement}
 \label{sec:problem_statement}
 
-No systematic comparison of several machine learning classifiers to predict diseases based on symptoms under controlled conditions is done. The literature, as found through the systematic review of the literature by \citet, identifies a single algorithm, or small group of models (usually two or three models) on various datasets with various preprocessing steps, which complicated the comparison of results across studies. Whenever one study claims that Random Forest gets 92-percent accuracy, and another study claims that XGBoost gets 94-percent accuracy, you cannot say that XGBoost is superior because they may have used different data sets, different train-test splits, different hyperparameter tuning processes, or different evaluation metrics.
+No systematic comparison of several machine learning classifiers to predict diseases based on symptoms under controlled conditions is done. The literature, as found through the systematic review of the literature by \citet{Chowdhury2024}, identifies a single algorithm, or small group of models (usually two or three models) on various datasets with various preprocessing steps, which complicated the comparison of results across studies. Whenever one study claims that Random Forest gets 92-percent accuracy, and another study claims that XGBoost gets 94-percent accuracy, you cannot say that XGBoost is superior because they may have used different data sets, different train-test splits, different hyperparameter tuning processes, or different evaluation metrics.
 
 Class imbalance - the fact that certain diseases are much more frequent than others in the data - is not treated consistently across the literature \citep{Haixiang2017,Thabtah2020}. Methods include oversampling methods such as SMOTE \citep{Chawla2002} and class weighting methods, as well as methods which do not make use of an explicit balancing method. It is difficult to tell with this, whether the reported performance numbers represent real classifier quality or simply good performance on common diseases and ignoring rare ones.
 
@@ -96,7 +96,3 @@ I speak about the implication in terms of how the healthcare booking works at a 
 \label{sec:thesis_structure}
 
 Chapter~\ref{ch:literature_review} reviews the relevant literature. Chapter~\ref{ch:data_description} describes the two datasets and the preprocessing pipeline. Chapter~\ref{ch:methodology} presents the five classifiers, the handling of class imbalance, and the evaluation metrics. Chapter~\ref{ch:results} reports the experimental results. Chapter~\ref{ch:discussion} discusses the findings, limitations, and ethical considerations. Chapter~\ref{ch:conclusion} summarizes the contributions and outlines future work.
-
-\vspace{1cm}
-
-\noindent\textbf{Thesis Statement:} This thesis compares five machine learning classifiers for symptom-based disease prediction across two datasets of different scales, and argues that the best model for real-world deployment depends not just on accuracy but also on interpretability, computational cost, and how the ranking changes when the dataset becomes larger and more imbalanced.
