@@ -32,15 +32,19 @@ This thesis makes three contributions:
 \section{Recommendations}
 \label{sec:recommendations}
 
-According to my discovery, I suggest the following:
+After the results of the experiments on both datasets and the practical implications discussed in Chapter~\ref{ch:discussion}, I would recommend the following to anyone considering how to employ a symptom-based disease prediction system in a real healthcare booking environment.
 
-\begin{itemize}
-    \item Logistic Regression is used when interpretability is important, since the coefficients are simple to interpret and describe.
-    \item Use Naive Bayes as a robust and very fast baseline, particularly when there is a constraint on training time or when a simple reference model is required.
-    \item XGBoost and Random Forest are helpful tools, and one should not expect them to always be more effective than simpler models on any given dataset.
-    \item Instead of SMOTE, use class weighting to deal with the imbalanced classes when features are binary.
-    \item Should not be deployed without external validation on actual clinical data, confidence thresholds, and human supervision.
-\end{itemize}
+\textbf{On model selection.} The findings go against the popular belief that the more elaborate ensemble techniques always perform better than the simpler classifiers. On Dataset~2, which is larger and more realistic, Naive Bayes performed the best (84.11\%), followed by Logistic Regression (81.82\%), while XGBoost (79.84\%) and in particular Random Forest (46.69\%) lagged behind. The features of the actual deployment data should therefore be the motivating factor behind model choice: specifically how many classes of diseases, the level of class imbalance, and how much symptom overlap there are, not the belief that the most advanced technique will prevail.
+
+\textbf{Primary classifier.} To simulate a deployment scenario that is similar to Dataset~2 (many disease classes, real patient-scale volume, imbalanced distribution), I suggest Naive Bayes as the main classifier. It gave the best accuracy on that data, trains in seconds, generates models small enough to be embedded on the client side, and handles high-dimensional binary feature spaces in a natural way. Logistic Regression is also a justifiable primary choice when interpretability is considered as a hard requirement, as its coefficients can be checked and described directly to doctors and regulators.
+
+\textbf{Secondary classifier as a validity check.} Instead of using one model, I suggest using the primary classifier with a second model of a separate family (such as Naive Bayes with Logistic Regression, or Logistic Regression with XGBoost) and their agreement as a token of assurance. In case the two models coincide, the prediction may be surfaced to the patient with more confidence. In their disagreement, the system must not recommend a specialist but leave it to a general practitioner. This offers a simple, cheap test which is not contingent on well-calibrated probabilities.
+
+\textbf{When to consider XGBoost and Random Forest.} Ensemble methods are still applicable when the dataset is small to medium size and the number of classes is moderate, as in Dataset~1, or when the set of features at hand is richer than binary symptoms (as when demographic or severity information are added). They must not be blindly chosen, and should not be relied upon on datasets where there are hundreds of classes and heavy imbalance without prior empirical confirmation that they do better than more basic baselines.
+
+\textbf{On class imbalance.} In the event of binary features, class weighting is a preferable alternative to synthetic oversampling techniques like SMOTE. Interpolation between binary symptom vectors produces fractional values that are not associated with any realistic patient presentation, and can degrade performance rather than improve it.
+
+\textbf{On deployment.} A symptom-based disease prediction system should not be implemented without external testing on actual clinical data of the target population, calibrated confidence levels, and human judgment by a clinician. The user interface should indicate that the output is a recommendation, not a diagnosis, and must guide patients with severe or progressive symptoms to get urgent care regardless of the model's prediction.
 
 \section{Future Work}
 \label{sec:future_work}

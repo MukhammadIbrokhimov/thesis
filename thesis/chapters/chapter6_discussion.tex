@@ -73,13 +73,6 @@ Class weighted Logistic Regression was reasonable on rare diseases which was bet
 
 The other factor is model size. Naive Bayes and Logistic Regression are small (few kilobytes) models that can be easily embedded in a mobile application or within a web page. Random Forest and XGBoost models are bigger (several megabytes), but not too large to be deployed in modern settings. This can be an issue only when you are deploying to extremely resource-constrained devices.
 
-\subsection{My Recommendation}
-
-In the case of a real healthcare booking system, the XGBoost or Random Forest would be installed as the main classifier. The performance difference is substantial enough to be warranted by the marginally increased training period and lower interpretability. XGBoost is a little more accurate and better in dealing with rare diseases between the two, so I would pick XGBoost in the event that I needed to choose.
-
-But a Logistic Regression model is a second option that I would have. Logistic Regression can give a straightforward response when a doctor or a regulator poses a question such as, "why did the system recommend this specialist?" The ability to have an interpretable fallback is worth the reduced accuracy, particularly when making high stakes predictions that have transparency as more important than a few percentage points of better performance.
-
-The other application of Logistic Regression is a confidence check. When XGBoost and Logistic regression come to an agreement on a prediction, it is a good indication. In case of disagreement, it implies that the prediction can be erroneous, and a general practitioner should refer the patient to a specialist.
 \section{Limitations and Concerns}
 \label{sec:limitations}
 
