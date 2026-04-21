@@ -33,9 +33,9 @@ The information was first collected based on several medical resources and also 
 
 \subsubsection{Class Distribution}
 
-Dataset 1 has a moderately imbalanced class distribution. The majority of disease categories contain 100 to 150 records, with some of the rare diseases having less than 50 examples. The distribution would be illustrated in Figure ~\ref{fig:class_dist_dataset1}, but even without the figure, I can tell the pattern: the top 10 most frequent diseases would cover approximately 40 percent of all the records, and the bottom 10 diseases would cover less than 10 percent.
+Dataset 1 has a moderately imbalanced class distribution. The majority of disease categories contain 100 to 150 records, with some of the rare diseases having less than 50 examples. The pattern is clear: the top 10 most frequent diseases cover approximately 40 percent of all the records, while the bottom 10 diseases cover less than 10 percent.
 
-Such an imbalance is realistic - it takes into account the reality that certain diseases are literally more prevalent than others. Nevertheless, it will imply that classifiers that have been trained without imbalanced handling will be more likely to predict common diseases and overlook rare ones. I solved this by class weighting (Section~\ref{sec:class_imbalance).
+Such an imbalance is realistic - it takes into account the reality that certain diseases are literally more prevalent than others. Nevertheless, it will imply that classifiers that have been trained without imbalanced handling will be more likely to predict common diseases and overlook rare ones. I solved this by class weighting (Section~\ref{sec:class_imbalance}).
 
 \subsubsection {Symptom Overlap Among Diseases.}
 
