@@ -4,95 +4,95 @@
 \section{Background and Motivation}
 \label{sec:background}
 
-It is a universal issue in healthcare systems worldwide because patients are usually not aware of the doctor they need to see. A patient who has had a lingering cough may see a general practitioner and be referred to a pulmonologist, and only after several weeks attending to the referral appointment does the patient get a diagnosis. This lack of efficiency is time and resource wasting on both ends. Patients end up waiting to get proper care and health care providers use up appointment time in cases that would have been diverted in a more efficient manner. In the digital health strategy presented by the World Health Organization, primary healthcare systems across the globe struggle to match patients with the right specialist care at the right time, especially in underserved areas where providers are scarce to provide care to patients on time and in the most suitable way possible.\citep{WHO2021}.
+The challenge that everyone in the healthcare sector faces is that patients typically don't know which doctor to visit. A patient with a longer-lasting cough would first see a GP, be sent on to a pulmonologist, and only after several weeks be diagnosed. Time is wasted due to this inefficiency: patients wait for adequate care, and providers waste time on cases that could have been conducted more efficiently. According to the digital health strategy from the World Health Organization, primary health care systems around the world have difficulty connecting patients with the appropriate specialist health care services at the right time, particularly in the underserved areas where providers are limited~\citep{WHO2021}.
 
-It is not only an issue of waiting times. Less efficient routes also result in poor health outcomes. A patient with a severe case may take weeks to visit a GP, and after another week, he or she may have to wait again before he or she receives a specialist referral, which postpones diagnosis and treatment. This delay in certain instances can spell the difference between a successful treatment and irreparable damage.
+It's not just a matter of waiting. Poor health outcomes are also the result of less efficient routes. For patients with a more serious condition, weeks might pass before they make it to a GP, and he or she might have to wait again a week after that before he or she receives a specialist referral, delaying diagnosis and treatment. This delay in certain instances can spell the difference between a successful treatment and irreparable damage.
 
-General practitioners on the other side waste a lot of time on cases which might be dealt with directly by specialists. This introduces a bottleneck in the healthcare system and makes the doctors spend less time on patients who actually require general care. Everyone would benefit with a more efficient system of triage: patients can see the appropriate specialist quicker, GPs get additional capacity to help more patients requiring their professional help, and specialists may also see the people who actually need their services.
+General practitioners on the other side waste a lot of time on cases which might be dealt with directly by specialists. This puts a constraint on the efficiency of the healthcare system and reduces time spent by doctors on patients who need general care. It would be a great improvement to have a more efficient system of triage: patients can see the appropriate specialist quicker, GPs get additional capacity to help more patients requiring their professional help, and specialists may also encounter those who really require their services.
 
-Machine learning is a possible solution. With the help of training classifiers on the datasets of symptoms and their related diagnoses, one can create models that could predict the probable diseases given a collection of reported symptoms \citep{Rajpurkar2022}. A healthcare booking system could include such a model. As soon as a patient makes an appointment request, the system requests the patient to complete a questionnaire of symptoms, executes the classifier using their answers, and proposes the most suitable specialist depending on the predicted disease. E.g. a patient with some type of skin related symptoms may be instructed to make a direct appointment with a dermatologist instead of visiting a general practitioner.
+One possible solution is machine learning. It is possible to develop models that can be used to classify symptoms and their associated diagnosis by training classifiers on data sets of symptoms and diagnosis, to predict diseases from a list of given symptoms~\citep{Rajpurkar2022}. Such a model can be integrated into a healthcare booking system: when a patient requests an appointment, the system asks them to fill in a symptom checklist, submits this to the classifier, and suggests the most suitable specialist based on the predicted disease. For instance, if a patient complains of skin symptoms, they may be referred to a dermatologist rather than their general practitioner.
 
-There are a number of benefits of this type of system. It is 24/7 without the need of a nurse or a doctor manually triaging each request. It is scaled to serve a large number of patients at any given time. It may be implemented in a web or mobile application and thus can be available in remote locations where face-to-face triage is not a possibility. And when done properly it may help to decrease waiting times and increase patient outcomes.
+There are a number of benefits of this type of system. It is available 24 hours a day, and doesn't require a nurse or doctor to manually sort through each request. It is scaled so as to serve a significant number of patients at one time. It can be deployed in a web or mobile application, and be accessible in remote areas where face-to-face triage is not a possibility. And when done properly it may help to decrease waiting times and increase patient outcomes.
 
-Nevertheless, the construction of such a system poses key questions. What machine learning classifier is applicable? What level of accuracy must the model have before it can be safely deployed? What does the model do when it is not certain? What do you do with infrequent diseases that are not represented in the training data? These are the questions this thesis tries to address.
+However, there are questions that need to be answered when constructing such a system. What type of machine learning (classification) algorithm is most suitable? What accuracy must the model achieve before it can be safely deployed? What do you want the model to do if it doesn't know the answer? How should under-represented diseases in the training set be handled? These questions are explored in the following thesis.
 
 \subsection{Machine Learning for Disease Prediction}
 
-Symptom-based disease prediction has been conducted with several classifiers, including basic such as Naive Bayes, as well as the ensemble models such as Random Forest and XGBoost \citep{Uddin2019}. These approaches have various advantages and disadvantages. Naive Bayes is quick and simple to understand but contains strong assumptions of feature independence which may not be true of symptom data. Also interpretable and effective with problems which are linearly separable, Logistic Regression cannot learn complex interactions between symptoms without manual feature engineering. The Support Vector Machines are able to cope with non-linear decision boundaries but they are slow to train when dealing with large datasets. Random Forest and XGBoost are the robust ensemble techniques that can be best performing, whereas they are more complex and cannot be easily interpreted.
+Several classifiers were used to study symptom based disease prediction, ranging from simple classifiers like Naive Bayes to ensemble classifiers like Random Forest and XGBoost~\citep{Uddin2019}. These methods have varying drawbacks and benefits. Naive Bayes is very fast and easily understood, but it relies on a strong feature-independence assumption that is not true for the case of symptom data. Logistic Regression is also a good and interpretable method for linearly separable problems, but cannot capture complex interactions between symptoms without manual feature engineering. Support Vector Machines are able to deal with non-linear decision boundaries; however, they take longer to learn on large amounts of data. Random Forest and XGBoost are powerful ensemble algorithms that can be more complex and are usually more accurate, but harder to interpret.
 
-As I was going through the literature, I was surprised that most of the studies only test one or two classifiers at the same time and it is difficult to determine which method really works best. Various papers have varied datasets, varied preprocessing methods, and varied evaluation measures thus making it hard to compare outcomes of various papers. Other studies achieve such high numbers of accuracy without stating how they dealt with class imbalance, which is a significant concern in medical datasets, where certain diseases are far less prevalent than others.
+As I was reading papers I noticed that the majority of papers only compare one or two classifiers, so it is hard to tell which one works best. It is difficult to compare the results of different papers because they employ various datasets, preprocessing methods and evaluation metrics. Other studies report high accuracy without explaining how they addressed class imbalance, even though some diseases are much less common than others in medical datasets.
 
-Minimal work is also done on the behavior of these classifiers when the size of the dataset varies in a significant manner. There are classifiers that have been known to perform well on small data sets, but level off as more data is available, whereas others are still improving. This scaling behavior is significant to understand since the amount of training data will be vastly different in various deployment situation.
+For most of these classifiers, few studies explore the behavior of the classifiers when the size of the dataset varies significantly. Some classifiers work better on a small dataset and plateau as more data becomes available, while others continue to improve. The understanding of this scaling behaviour is important because the size of training dataset is greatly different across deployment settings.
 
 \subsection{Why This Work Matters}
 
-This thesis provides a controlled comparison of five commonly used machine learning classifiers on the same symptom-disease prediction task, using the same preprocessing and evaluation procedures. Using two very different-size datasets, I can observe the performance with respect to the availability of data. With the help of various evaluation metrics (accuracy, precision, recall, F1-score), I will be able to measure various attributes of the classifier performance instead of a single number.
+This thesis constitutes a controlled comparison of five popular machine learning classifiers to the same symptom-disease prediction problem with equal preprocessing and performance measurement processes. I am able to see how performance changes with the availability of the data by using two sets of data with vastly different sizes. Multiple evaluation measures (accuracy, precision, recall, F1-score) measure various aspects of the performance of classifiers; they do not reduce it to a single number.
 
-In addition to the technical comparison, this thesis explains the practical and ethical factors that would be of concern in a real deployment. Which one is better; the more accurate but less interpretable model or the less accurate but transparent one? What are the regulatory provisions in the EU AI Act and GDPR? What do you do with the threat of making a false prediction and hurting a patient? These are not issues that can be resolved by machine learning, and need to be contributed to by doctors, ethicists, regulators, and even patients themselves. This thesis is not able to address all of them but attempts to set them into perspective so that they can be addressed in the future.
+The technical comparison is not the only topic it discusses in this thesis; the practical and ethical aspects of a real deployment are also relevant. Is a more accurate but less interpretable model preferable to a less accurate but transparent one? What are the obligations of the EU AI Act, and the GDPR? How is an error in a prediction that causes harm to a patient to be dealt with? These are not problems that can be addressed by machine learning alone, but rather by clinicians' input from physicians, regulators and patients. The thesis does not solve all of them, but it puts them in the context so they can be solved in future work.
 
 \section{Problem Statement}
 \label{sec:problem_statement}
 
-No systematic comparison of several machine learning classifiers to predict diseases based on symptoms under controlled conditions is done. The literature, as found through the systematic review of the literature by \citet{Chowdhury2024}, identifies a single algorithm, or small group of models (usually two or three models) on various datasets with various preprocessing steps, which complicated the comparison of results across studies. Whenever one study claims that Random Forest gets 92-percent accuracy, and another study claims that XGBoost gets 94-percent accuracy, you cannot say that XGBoost is superior because they may have used different data sets, different train-test splits, different hyperparameter tuning processes, or different evaluation metrics.
+There is a lack of a comparative study of machine learning classifiers for the prediction of diseases based on symptoms in the current literature. According to the systematic review conducted by \citet{Chowdhury2024}, most studies report a single algorithm or a small group of two or three models on varied datasets prepared differently, which hinders cross-study comparisons. If one study reports Random Forest at 92\% accuracy and another reports 94\% accuracy for XGBoost, it is not possible to conclude that XGBoost is better, since the two papers might have used different data, train-test splits, hyperparameter tuning methods, or evaluation metrics.
 
-Class imbalance - the fact that certain diseases are much more frequent than others in the data - is not treated consistently across the literature \citep{Haixiang2017,Thabtah2020}. Methods include oversampling methods such as SMOTE \citep{Chawla2002} and class weighting methods, as well as methods which do not make use of an explicit balancing method. It is difficult to tell with this, whether the reported performance numbers represent real classifier quality or simply good performance on common diseases and ignoring rare ones.
+Class imbalance --- some diseases are much more common than others in the data set --- is not resolved uniformly throughout the literature~\citep{Haixiang2017,Thabtah2020}. These methods are oversampling approaches like SMOTE~\citep{Chawla2002}, class-weighting methods, and methods that do not use any explicit balancing. This can be hard to determine if the reported performance numbers reflect the true quality of the classifiers or simply good performance on common diseases while neglecting rare ones.
 
-The other gap is the absent multi-scale evaluation. The majority of studies are tested on one dataset, thus we are not aware of the ability to apply the results to other data sizes. What works well on 5,000 examples may not generalize to 246,000 examples, or even do much better. This scaling behavior is of importance in terms of practical deployment.
+There is also a lack of multi-scale evaluation. The vast majority of the studies are evaluated with only one data set, and it is not clear if the results will transfer to other dataset sizes. Good performance on 5,000 examples might turn into poor performance on 246,000 examples, or it may get much better. This scaling behaviour is important for deployment.
 
-Lastly, the vast majority of research results are in terms of predictive performance (accuracy, F1-score) and do not address the more practical trade-offs that are important to actual deployment: training time, interpretability, regulatory compliance, behavior with rare diseases, and what the model does when it is uncertain. These considerations may be equally relevant to the determination of which classifier to use as raw accuracy.
+Lastly, the vast majority of research results are in terms of predictive performance (accuracy, F1-score) and do not address the more practical trade-offs that matter for actual deployment: training time, interpretability, regulatory compliance, behavior with rare diseases, and what the model does if it is unsure. These considerations may be just as relevant to the choice of classifier as raw accuracy.
 
 \section{Research Question}
 \label{sec:research_question}
 
-This thesis addresses the following research question:
+This thesis tackles the following research question:
 
 \begin{quote}
-\textit{What is the comparison of Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, and XGBoost in regards to accuracy, precision, recall and F1-score when used in symptom-based disease prediction and what is the best trade-off between predictive performance and applicability in healthcare decision support?}
+\textit{What are the differences in accuracy, precision, recall, and F1-score between Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest and XGBoost when used for symptom-based disease prediction, and what is the best balance between predictive performance and usability for healthcare decision support?}
 \end{quote}
 
 \section{Objectives}
 \label{sec:objectives}
 
-To answer this question, I pursue the following objectives:
+In order to answer this question, I would like to achieve the following objectives:
 
 \begin{enumerate}
-    \item Review the existing literature on machine learning for symptom-based disease prediction.
-    \item Describe and preprocess two publicly available Kaggle datasets for symptom-based disease classification.
-    \item Implement and train five classifiers --- Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, and XGBoost --- under identical experimental conditions.
-    \item Evaluate and compare these classifiers using accuracy, precision, recall, and F1-score, and analyze error patterns using confusion matrices and feature importance.
-    \item Discuss what the results mean for healthcare booking and triage.
+    \item Survey the current knowledge related to machine learning for disease prediction based on symptoms.
+    \item Describe and preprocess two public datasets from Kaggle that are used for classification of diseases by symptoms.
+    \item Implement and train five classifiers --- Naive Bayes, Logistic Regression, Support Vector Machine, Random Forest, XGBoost --- under the same experimental conditions.
+    \item Analyse error patterns on the basis of confusion matrices and feature importance, and evaluate and compare these classifiers based on accuracy, precision, recall and F1-score.
+    \item Discuss the implications of results on health care booking and triage.
 \end{enumerate}
 
 \section{Scope and Limitations}
 \label{sec:scope}
 
-This thesis focuses on predicting disease categories from binary symptom vectors using supervised classification. The scope includes:
+This thesis is based on predicting category of disease from a binary symptom vector by supervised classification. The scope includes:
 
 \begin{itemize}
-    \item Comparing five machine learning classifiers (Naive Bayes, Logistic Regression, SVM, Random Forest, XGBoost) under identical experimental conditions
-    \item Testing on two publicly available Kaggle datasets of different sizes
-    \item Handling class imbalance through class weighting
-    \item Evaluating performance using multiple metrics (accuracy, precision, recall, F1-score)
-    \item Analyzing error patterns through confusion matrices and feature importance
-    \item Discussing practical deployment considerations including interpretability, regulatory requirements, and ethical concerns
+    \item Comparing five machine learning classifiers (Naive Bayes, Logistic Regression, SVM, Random Forest, XGBoost) with the same experimental setup
+    \item Testing on two publicly available datasets from Kaggle, with varied sizes
+    \item Responding to class imbalance by class weighting
+    \item Using multiple metrics to evaluate performance --- accuracy, precision, recall, and F1-score
+    \item Using a confusion matrix and feature importance to analyze error patterns
+    \item Discussing real-life practical issues such as interpretability, regulatory aspects, and ethical issues
 \end{itemize}
 
-The thesis does \textbf{not} cover:
+The following is not covered by the thesis:
 
 \begin{itemize}
     \item Deep learning methods (neural networks, transformers) --- I focus on traditional ML classifiers that are more interpretable and require less training data
-    \item The disease-to-specialist mapping layer --- I assume this mapping exists but don't implement or evaluate it
-    \item Treatment recommendation --- I only predict disease categories, not what treatment the patient should receive
-    \item Real-time clinical deployment --- the evaluation is offline using historical datasets, not tested with real patients
-    \item Multi-label classification --- I assume each patient has exactly one disease, though in reality patients can have multiple conditions
-    \item Symptom severity or temporal information --- the datasets only provide binary symptom presence/absence
+    \item The disease-to-specialist mapping layer --- this mapping is assumed to exist, but is not implemented or evaluated
+    \item Treatment recommendation --- I don't say what treatment the patient should receive, only what disease they are likely to have
+    \item Real-time clinical deployment --- the evaluation is done offline with historical datasets, not with real patients
+    \item Multi-label classification --- I assume that each patient has just a single disease, although in real life patients may have several
+    \item Symptom severity or temporal information --- the datasets lack information on the severity of symptoms or when they were recorded
 \end{itemize}
 
-The analysis is based on two publicly available datasets on Kaggle and is not clinical and does not use real patient data on hospitals or clinics. The performance figures found in this thesis will need to be taken as upper limits. With realistic data of patients, performance would probably be poorer because the symptom reporting would be more noisy, the disease distribution would not be the same, and other variables that are not represented in the cleaned Kaggle datasets would occur.
+This analysis is done on two public datasets found on Kaggle, and not real patient data from hospitals or clinics. The performance figures reported here should therefore be treated as upper bounds. On realistic patient data, performance is likely to be lower due to less ``clean'' reporting of symptoms, a different disease distribution, and other factors not included in the cleaned Kaggle datasets.
 
-I speak about the implication in terms of how the healthcare booking works at a conceptual level and not in terms of a deployed system. The development of a full-fledged booking system would imply the integration with appointment scheduling software, user interface design, regulatory approval, and collaboration with healthcare providers all of which are not within the scope of a bachelor thesis.
+I don't go into detail on implementing the results, just discussing the implications of the results in a conceptual way as a healthcare booking system. Developing a complete booking system would require integration with appointment scheduling systems, user interface design, regulatory compliance, and healthcare provider collaboration, all of which lie beyond the scope of a Bachelor's thesis.
 
 \section{Thesis Structure}
 \label{sec:thesis_structure}
 
-Chapter~\ref{ch:literature_review} reviews the relevant literature. Chapter~\ref{ch:data_description} describes the two datasets and the preprocessing pipeline. Chapter~\ref{ch:methodology} presents the five classifiers, the handling of class imbalance, and the evaluation metrics. Chapter~\ref{ch:results} reports the experimental results. Chapter~\ref{ch:discussion} discusses the findings, limitations, and ethical considerations. Chapter~\ref{ch:conclusion} summarizes the contributions and outlines future work.
+Chapter~\ref{ch:literature_review} reviews the relevant literature. In Chapter~\ref{ch:data_description} the two datasets are described, along with the preprocessing pipeline. Chapter~\ref{ch:methodology} presents the five classifiers, the handling of class imbalance and the evaluation metrics. Chapter~\ref{ch:results} reports the experimental results. Chapter~\ref{ch:discussion} discusses the findings, limitations and ethical considerations. Chapter~\ref{ch:conclusion} summarizes the contributions and makes plans for future work.

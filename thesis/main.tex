@@ -33,6 +33,8 @@
 \usepackage{multirow}           % Table cell merging
 \usepackage{pdflscape}          % Landscape pages
 \usepackage{fancyhdr}           % Headers/footers
+\usepackage{tikz}               % Diagrams (pipeline figure)
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 
 % ============================================================
 % University Branding Colors (UE Germany Official)
@@ -72,25 +74,30 @@
 % ============================================================
 \begin{document}
 
-% --- Cover Page ---
+% --- Cover Page (unnumbered; titlepage env hides number) ---
 \input{chapters/coverpage}
 
-% --- Statement of Authorship ---
+% --- Front Matter (Roman page numbers: i, ii, iii, ...) ---
+\pagenumbering{roman}
+
+% Statement of Authorship
 \input{chapters/declaration}
 
-% --- Declaration on AI Use ---
+% Declaration on AI Use
 \input{chapters/ai_declaration}
 
-% --- Front Matter ---
-\pagenumbering{roman}
 \tableofcontents
 \listoffigures
 \listoftables
 
-% --- Abstract ---
+% List of Abbreviations
+\input{chapters/abbreviations}
+
+% Abstract
 \input{chapters/abstract}
 
-% --- Main Content ---
+% --- Main Content (Arabic page numbers, starting at 1) ---
+\clearpage
 \pagenumbering{arabic}
 \setcounter{page}{1}
 

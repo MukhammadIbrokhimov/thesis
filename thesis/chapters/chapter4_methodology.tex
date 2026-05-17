@@ -1,26 +1,122 @@
 \chapter{Methodology}
 \label{ch:methodology}
 
-This chapter outlines the way I established the experiments. I present a formal statement of the classification problem, how the symptoms are represented as features, each of the five classifiers I selected and why, and finally, how to deal with class imbalances, the tuning of the hyperparameters, and the evaluation metrics.
+This chapter details the experiments used. I present a formal statement of the classification problem, the preprocessing pipeline used on both datasets, how symptoms are represented as features, the five classifiers I chose and why I chose them, and last but not least how I overcame problems with class imbalance, hyperparameter tuning, and evaluation metrics.
 
 \section{Problem Formulation}
 \label{sec:problem_formulation}
 
-This is multi-class supervised classification. With a patient symptom vector, say, of the form, so, we want to predict the disease label, say, of the form, so, where, in turn, is the number of distinct symptoms, and is the number of disease categories.
+The task is a multi-class supervised classification task. For a patient symptom vector $\mathbf{x} \in \{0, 1\}^d$, I want to predict the disease label $y \in \{1, \ldots, C\}$ that the patient has, where $d$ denotes the number of different symptoms and $C$ the number of disease categories.
 
-Formally, I want to learn a mapping $f: \{0, 1\}^d \rightarrow \{1, \ldots, C\}$ that minimizes classification error on unseen patients. I train the classifiers on a labeled training set $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ and evaluate on a held-out test set.
+More formally, I want to learn a mapping $f: \{0, 1\}^d \rightarrow \{1, \ldots, C\}$ which minimizes the classification error rate for patients not seen before. I train the classifiers on a labeled training set $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ and evaluate on a held-out test set.
 
-This formulation makes three simplifying assumptions:
+This is a simplified version of the problem, in which I make three assumptions:
 \begin{enumerate}
     \item The symptom representation is the same whether the symptom was self-reported or clinically observed.
     \item The datasets reasonably represent real symptom-disease patterns, though they're obviously simplified compared to actual clinical encounters.
     \item Each patient has exactly one disease label. In reality, patients often have multiple conditions simultaneously, but the datasets don't support multi-label classification.
 \end{enumerate}
 
+Figure~\ref{fig:pipeline} gives an overview of the entire experimental pipeline used in this thesis, starting from the raw data and ending with the evaluation output. Each stage is explained in detail in the remaining sections of this chapter.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.6cm,
+    every node/.style={font=\small},
+    block/.style={rectangle, draw, thick, rounded corners=2pt,
+        minimum width=10cm, minimum height=0.8cm, align=center, fill=blue!5},
+    data/.style={rectangle, draw, thick, rounded corners=2pt,
+        minimum width=10cm, minimum height=0.8cm, align=center, fill=gray!10},
+    models/.style={rectangle, draw, thick, rounded corners=2pt,
+        minimum width=10cm, minimum height=1.0cm, align=center, fill=orange!10},
+    eval/.style={rectangle, draw, thick, rounded corners=2pt,
+        minimum width=10cm, minimum height=0.8cm, align=center, fill=green!10},
+    arrow/.style={-{Stealth[length=2.5mm]}, thick}
+]
+
+\node[data] (data) {%
+    \textbf{Raw Data} \\
+    Dataset~1: $\sim$5{,}000 records, 132 symptoms, 41 diseases \quad\textbar\quad
+    Dataset~2: $\sim$246{,}000 records, 377 symptoms, 727 diseases};
+
+\node[block, below=of data] (prep) {%
+    \textbf{Preprocessing} (Sec.~\ref{sec:preprocessing}) \\
+    Load CSV $\rightarrow$ deduplicate $\rightarrow$ impute missing $\rightarrow$ label encode};
+
+\node[block, below=of prep] (split) {%
+    \textbf{Stratified Train/Test Split} \quad 80\% / 20\% \quad (seed = 42)};
+
+\node[block, below=of split] (scale) {%
+    \textbf{Feature Scaling} (LR, SVM only) \quad
+    \texttt{StandardScaler} fit on training set};
+
+\node[models, below=of scale] (train) {%
+    \textbf{Train 5 Classifiers} (with class weighting) \\
+    Naive Bayes \quad\textbar\quad Logistic Regression \quad\textbar\quad SVM
+    \quad\textbar\quad Random Forest \quad\textbar\quad XGBoost};
+
+\node[block, below=of train] (tune) {%
+    \textbf{Hyperparameter Selection} (Sec.~\ref{sec:hyperparameter_tuning}) \\
+    Grid search + 5-fold stratified CV on Dataset~1 \quad\textbar\quad
+    Fixed values on Dataset~2};
+
+\node[eval, below=of tune] (eval) {%
+    \textbf{Evaluation on Held-out Test Set} \\
+    Accuracy \quad\textbar\quad Macro Precision \quad\textbar\quad
+    Macro Recall \quad\textbar\quad Macro F1};
+
+\node[eval, below=of eval] (out) {%
+    \textbf{Outputs} \\
+    Results tables \quad\textbar\quad Confusion matrices \quad\textbar\quad
+    Feature importance};
+
+\draw[arrow] (data) -- (prep);
+\draw[arrow] (prep) -- (split);
+\draw[arrow] (split) -- (scale);
+\draw[arrow] (scale) -- (train);
+\draw[arrow] (train) -- (tune);
+\draw[arrow] (tune) -- (eval);
+\draw[arrow] (eval) -- (out);
+
+\end{tikzpicture}
+\caption{End-to-end experimental pipeline. Each block corresponds to a stage of the methodology described in this chapter.}
+\label{fig:pipeline}
+\end{figure}
+
+\section{Preprocessing Pipeline}
+\label{sec:preprocessing}
+
+To have a fair comparison across classifiers, I performed the same preprocessing pipeline on both datasets. The steps were:
+
+\textbf{Step 1: Data Loading and Inspection.} For each data set, I used \texttt{pandas.read\_csv()} to read in the data and did initial inspection. This included identifying structural problems (such as inconsistent numbers of columns), column types (to ensure that symptoms were numeric), missing values, and duplicate records. Duplicated records may lead to over-optimistic performance if the same record is in both train and test sets, so I removed them before splitting.
+
+\textbf{Step 2: Missing Value Handling.} In Dataset~1, I used 0 to represent the absence of a symptom, to match the binary encoding. The default is for a symptom to be considered absent if it is not specifically stated, which is a sensible default for symptom data. Dataset~2 contained few missing values (less than half a percent of all cells), and I handled them in the same manner. The alternative of dropping records with missing values would have discarded useful data.
+
+\textbf{Step 3: Feature Encoding.} Symptoms have to be encoded as binary features. The format of Dataset~1 is already like this, with 0 or 1 in each symptom column. I use the same binary symptom table representation for Dataset~2, loading all feature columns except the disease label, replacing missing values with 0, and keeping the dataset-specific symptom names. I do not project the two data sets into a common feature space because they are compared independently.
+
+\textbf{Step 4: Label Encoding.} I used scikit-learn's \texttt{LabelEncoder} to encode the names of the diseases as integer labels. This converts the name of every disease to its unique integer (e.g., ``diabetes'' $\rightarrow$ 0, ``pneumonia'' $\rightarrow$ 1, etc.). I saved the mapping so I could interpret the results later by converting integer predictions back to disease names. This is required because all classifiers use integer labels as their internal format.
+
+\textbf{Step 5: Train-Test Split.} Each dataset is divided using \texttt{train\_test\_split} with \texttt{stratify=y} into an 80/20 training to testing set split. The stratify parameter ensures the class distribution in the training set is the same distribution as that in the test set. For example, if diabetes accounts for 5\% of the whole dataset, it will represent 5\% of the training data and 5\% of the test data. This is necessary for data sets that are not balanced, as a random split may accidentally include every instance of a rare disease in the training set, with no instances for testing.
+
+I've fixed the random seed (\texttt{random\_state=42}) so that the splits are reproducible. This implies that the experiments could be rerun by anyone and the same train-test split would be obtained.
+
+\textbf{Step 6: Feature Scaling.} For Logistic Regression and SVM, I applied \texttt{StandardScaler} to standardize features to zero mean and unit variance. These classifiers are scale-sensitive, in that if they are not scaled, then features with a larger range would dominate the model (not relevant here because all features are binary, but in the case of continuous features it is common practice).
+
+With a binary feature, standardization has little impact because all values are already at 0 or 1, but I do put it in for consistency with standard practice. Naive Bayes and the tree-based classifiers, Random Forest and XGBoost, don't need scaling because they are scale-invariant, so I train these classifiers on the original binary features.
+
+An important note: I fit the scaler on the training set only, then used it on both the training and test sets. Fitting the scaler on all data points prior to splitting would leak information from the test set to the training set, giving optimistic performance estimates.
+
+\textbf{Step 7: Cross-Validation Setup.} I tuned my hyperparameters on Dataset~1 using stratified 5-fold cross-validation. Stratified splits are important because they work well with imbalanced datasets, retaining the class proportions per fold. On Dataset~2, hyperparameters are not tuned with full grid search, because full-tuning at that size would be too costly. Evaluation on both datasets is still conducted on a held-out test set.
+
+One popular option is 5 folds, a compromise between bias and variance in the performance estimate. The fewer folds used (e.g., 3 folds), the faster the estimates will be but the noisier they become. More folds (e.g., 10) are more precise, but more expensive to compute. On the bigger Dataset~2, 5-fold cross-validation is already time-consuming, so I did not exceed it.
+
+The entire pre-processing pipeline, software versions (Table~\ref{tab:software}) and hyperparameter search spaces (Table~\ref{tab:hyperparameters}), are documented in Appendix~\ref{app:supplementary}.
+
 \section{Feature Representation}
 \label{sec:feature_representation}
 
-Each patient is represented as a binary vector of dimension $d = 132$ (for Dataset~1). For example, a patient with fever, headache, and nausea would have:
+Every patient is encoded as a binary vector of dimension $d = 132$ (for Dataset~1). A patient with fever, headache and nausea would have:
 
 \begin{equation}
 \label{eq:feature_vector}
@@ -29,120 +125,120 @@ Each patient is represented as a binary vector of dimension $d = 132$ (for Datas
 
 \noindent with 1s at the location of the reported symptoms and 0s at all other locations.
 
-This works like the bag-of-words in text classification. It records the presence of the symptoms but nothing about the severity, duration, and order. That is an actual limitation, though in practice binary symptom vectors can be surprisingly useful in the disease classification task, particularly when the classifier is able to identify combinations of features.
+This representation is similar to the bag-of-words encoding used in text classification: it captures the presence of symptoms, but not their severity, duration, or order. This is a serious drawback, but in practice binary symptom vectors are often highly successful in the classification of diseases, especially if the classifier can find useful combinations of features.
 
 \section{Classification Models}
 \label{sec:models}
 
-I chose five classifiers which occupy the spectrum of simple to complex. The criteria were: (1) it must have a defined use in medical classification, (2) the collection must span the various algorithmic methods (probabilistic, linear, kernel-based, ensemble) and (3) all should have full-fledged implementations in scikit-learn or XGBoost.
+For this reason I selected five classifiers, ranging from simple to complex. The selection criteria were: (1) the classifier must have an established use in medical classification, (2) the set must cover the main algorithmic paradigms (probabilistic, linear, kernel-based, and ensemble), and (3) all must have mature implementations in scikit-learn or XGBoost.
 
 \subsection{Naive Bayes}
 \label{sec:naive_bayes}
 
-Naive Bayes was used as the simplest baseline. It uses Bayes theorem when all the features are independent conditionally on the class of the example \citep{Bishop2006}. I adopt the Bernoulli variant because the characteristics are binomial:
+The most basic baseline is Naive Bayes. It uses Bayes' theorem assuming conditional independence of the features given the class~\citep{Bishop2006}. Since the features are binary, I am using the Bernoulli model:
 
 \begin{equation}
 \label{eq:naive_bayes}
 P(y \mid \mathbf{x}) \propto P(y) \prod_{j=1}^{d} P(x_j \mid y).
 \end{equation}
 
-The independence assumption is obviously false, the co-occurrence of fever and headache is always present. However, I added Naive Bayes since it trains faster than a second and provides an indication of a floor against which the more sophisticated algorithms must perform. Implementation: \texttt{sklearn.naive\_bayes.BernoulliNB}.
+In reality, the independence assumption is clearly not met: the occurrences of fever and headache, for instance, are not independent. However, Naive Bayes is included as a benchmark since it trains in under a second, and gives a good lower bound against which the other more sophisticated algorithms can be compared. Implementation: \texttt{sklearn.naive\_bayes.BernoulliNB}.
 
 \subsection{Logistic Regression}
 \label{sec:logistic_regression}
 
-The second model that I chose was the Logistic Regression, primarily due to its interpretability. It represents the probabilities of classes as a softmax of linear features \citep{Bishop2006}:
+Logistic Regression was selected because it is more interpretable than other models. It treats the class probabilities as a softmax over a linear combination of features~\citep{Bishop2006}:
 
 \begin{equation}
 \label{eq:logistic_regression}
 P(y = k \mid \mathbf{x}) = \frac{\exp(\mathbf{w}_k^T \mathbf{x} + b_k)}{\sum_{j=1}^{C} \exp(\mathbf{w}_j^T \mathbf{x} + b_j)}.
 \end{equation}
 
-I used L2 regularization to prevent overfitting. The reason I kept this one is that the learned weights $\mathbf{w}_k$ directly show which symptoms push toward which disease --- if a doctor asks ``why did it recommend a dermatologist?'', Logistic Regression can give a clear answer. Implementation: \texttt{sklearn.linear\_model.LogisticRegression} with \texttt{lbfgs}.
+To avoid overfitting I applied L2 regularization. The benefit of this model is that the learned weights $\mathbf{w}_k$ directly represent which symptoms move the prediction toward which disease --- if a clinician asks ``why was a dermatologist recommended?'', Logistic Regression can give a definite response. Implementation: \texttt{sklearn.linear\_model.LogisticRegression} with the \texttt{lbfgs} solver.
 
 \subsection{Support Vector Machine}
 \label{sec:svm}
 
-SVM was included to test a margin-based classifier \citep{Cortes1995}. For Dataset~1, I used an RBF kernel because the dataset is small enough for a full kernel method:
+I added SVM as an experiment to test a margin-based classifier~\citep{Cortes1995}. For small enough datasets (such as Dataset~1) I used an RBF kernel:
 
 \begin{equation}
 \label{eq:svm_kernel}
 K(\mathbf{x}_i, \mathbf{x}_j) = \exp\left(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2\right).
 \end{equation}
 
-For Dataset~2, a full kernel SVM would be too slow, so I used a linear approximation based on stochastic gradient descent with hinge loss. This keeps the model practical on the larger dataset while still preserving the basic SVM objective. Implementation: \texttt{sklearn.svm.SVC} for Dataset~1 and \texttt{sklearn.linear\_model.SGDClassifier} for Dataset~2.
+In the case of Dataset~2, using a linear approximation based on stochastic gradient descent with hinge loss was much faster than a full kernel SVM would be. This maintains a practical model on the larger dataset while retaining the basic objective of the SVM. Implementation: \texttt{sklearn.svm.SVC} for Dataset~1 and \texttt{sklearn.linear\_model.SGDClassifier} for Dataset~2.
 
 \subsection{Random Forest}
 \label{sec:random_forest}
 
-Random Forest was the first ensemble method I tested \citep{Breiman2001}. It builds many trees on bootstrap samples, each seeing only a random subset of features at each split:
+The first ensemble method that I tried is Random Forest~\citep{Breiman2001}. It creates numerous trees using random samples of data, called bootstrap samples, with each tree seeing only a random subset of features at each split:
 
 \begin{equation}
 \label{eq:random_forest}
 \hat{y} = \text{mode}\{h_1(\mathbf{x}), h_2(\mathbf{x}), \ldots, h_T(\mathbf{x})\}.
 \end{equation}
 
-I chose this because it handles binary data well, needs no feature scaling, and gives feature importance scores (which I use later in Section~\ref{sec:feature_importance}). In early tests, 200 trees already gave solid results and trained in just a few seconds. Implementation: \texttt{sklearn.ensemble.RandomForestClassifier}.
+I selected Random Forest because it works with binary data, doesn't require any feature scaling, and gives feature importance scores (which I use later in Section~\ref{sec:feature_importance}). In preliminary tests, 200 trees yielded excellent performance, training in a few seconds. Implementation: \texttt{sklearn.ensemble.RandomForestClassifier}.
 
 \subsection{XGBoost}
 \label{sec:xgboost}
 
-XGBoost builds trees sequentially --- each new tree corrects the mistakes of previous ones \citep{Chen2016}:
+XGBoost sequentially constructs trees to correct the previous errors \citep{Chen2016}:
 
 \begin{equation}
 \label{eq:xgboost}
 \mathcal{L}^{(t)} = \sum_{i=1}^{N} l(y_i, \hat{y}_i^{(t-1)} + f_t(\mathbf{x}_i)) + \Omega(f_t).
 \end{equation}
 
-I included XGBoost mainly to see if its extra complexity over Random Forest actually buys anything for symptom data. It has a reputation for dominating Kaggle competitions on tabular datasets. The regularization term $\Omega$ should help with the smaller Dataset~1 where overfitting is more of a risk. Implementation: \texttt{xgboost.XGBClassifier}.
+I added XGBoost to see if it is worth the added complexity compared to Random Forest on symptom data. XGBoost is a very good model for tabular data, particularly in Kaggle competitions. The regularization term $\Omega$ should help on Dataset~1, which is a smaller dataset and has more risk of overfitting. Implementation: \texttt{xgboost.XGBClassifier}.
 
 \section{Class Imbalance Handling}
 \label{sec:class_imbalance}
 
-Both datasets have class imbalance --- some diseases appear much more often than others. Without handling this, classifiers tend to over-predict common diseases and ignore rare ones.
+Both datasets are imbalanced, with some diseases more prevalent than others. When not dealt with, classifiers tend to over-predict common diseases and ignore rare ones.
 
-I used two strategies:
+There were two approaches I used:
 
-\textbf{Class Weighting:} For Logistic Regression, SVM, and Random Forest, I set \texttt{class\_weight='balanced'}, which adjusts each class's weight inversely to its frequency:
+\textbf{Class Weighting:} I set \texttt{class\_weight='balanced'} for Logistic Regression, SVM and Random Forest, because each class is assigned a weight that is inversely proportional to its frequency:
 
 \begin{equation}
 \label{eq:class_weight}
 w_k = \frac{N}{C \cdot n_k},
 \end{equation}
 
-\noindent where $N$ denotes the total sample size, $C$ the number of classes and $n_k$ the size of class $k$. This implies that rare diseases are more severely punished in the loss function at the time of misclassification.
+\noindent Here, $N$ is the number of the entire sample, $C$ is the number of classes, and $n_k$ is the size of class $k$. This means that misclassifications on rare diseases incur a larger loss during training.
 
-\textbf{Stratified Sampling:} All train-test splits and cross-validation folds are stratified to maintain class proportions.
+\textbf{Stratified Sampling:} Class proportions are maintained in all train-test splits and cross-validation folds.
 
-I have thought of SMOTE \citep{Chawla2002} but dismissed it to use in this application. The interpolation-based generation of synthetic examples of SMOTE is discussed in problematic terms with binary feature spaces: averaging interpolates between binary symptom vectors generate fractional values that are not possible symptom presentations \citet{Fernandez2018}. Class weighting has similar balancing effects, but it does not create artificial data points.
+I thought of using SMOTE~\citep{Chawla2002} but decided not to use it for this application. According to \citet{Fernandez2018}, the synthetic samples generated by SMOTE are produced by interpolation. The averaging of binary symptom vectors is problematic in the case of a binary feature space: the results of this operation are fractional symptom vectors which are not valid symptom presentations. Class weighting is a similar balancing technique that does not introduce artificial data points.
 
 \section{Hyperparameter Tuning}
 \label{sec:hyperparameter_tuning}
 
-I optimized hyperparameters by grid search with stratified 5-fold cross-validation on the training data of Dataset 1. Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary} contains the search spaces. Dataset2 is operated with fixed settings, which have been selected to make the runtime manageable.
+I optimized the hyperparameters using a grid search with stratified 5-fold cross-validation on the training set of Dataset~1. Table~\ref{tab:hyperparameters} in Appendix~\ref{app:supplementary} lists the search spaces. Dataset~2 is set with fixed parameters that were selected to ensure that the runtime is manageable.
 
-The scoring metric that I employed in grid search was macro-averaged F1-score rather than accuracy. This is because a classifier can give misleadingly high accuracy on data which is not balanced, e.g. a classifier which predicts the most frequent disease may achieve 40 percent accuracy. Macro-F1 uses all the classes equally, and this is what compels the tuning process to be concerned about the performance of the rare-diseases, rather than simply optimizing the majority of the classes.
+Macro-averaged F1-score, not accuracy, was used as the scoring method for grid search. A classifier can obtain a very high accuracy on an imbalanced data set --- for instance, a disease classifier that classified all the diseases as the most common would achieve 40\% accuracy. In the Macro-F1 score, every class is given equal weight, which forces the tuning process to account for performance on rare diseases rather than only optimizing for the majority classes.
 
 \section{Evaluation Metrics}
 \label{sec:evaluation_metrics}
 
-I perform an evaluation of each classifier on four measures, which are calculated on the held-out test set.
+Each classifier was tested on four metrics, all computed on the held-out test set.
 
-\textbf{Accuracy} The fraction of correct predictions:
+\textbf{Accuracy} is the ratio of correct predictions:
 
 \begin{equation}
 \label{eq:accuracy}
 \text{Accuracy} = \frac{\text{Number of correct predictions}}{\text{Total number of predictions}}.
 \end{equation}
 
-\textbf{Precision} measures how many of the predicted positives are actually correct for each class $k$:
+\textbf{Precision} for each class $k$ calculates the proportion of the predicted positives which are correct:
 
 \begin{equation}
 \label{eq:precision}
 \text{Precision}_k = \frac{TP_k}{TP_k + FP_k}.
 \end{equation}
 
-\textbf{Recall} measures how many of the actual positives are correctly identified:
+\textbf{Recall} is the proportion of the true positives that are correctly identified:
 
 \begin{equation}
 \label{eq:recall}
@@ -156,13 +252,13 @@ I perform an evaluation of each classifier on four measures, which are calculate
 \text{F1}_k = 2 \cdot \frac{\text{Precision}_k \cdot \text{Recall}_k}{\text{Precision}_k + \text{Recall}_k}.
 \end{equation}
 
-I report macro-averaged versions of precision, recall, and F1-score:
+I report macro-averaged precision, recall and F1-score:
 
 \begin{equation}
 \label{eq:macro}
 \text{Macro-F1} = \frac{1}{C} \sum_{k=1}^{C} \text{F1}_k.
 \end{equation}
 
-I selected macro-averaging, as opposed to micro-averaging, as all disease classes are treated equally. Under micro-averaging, prevalent diseases will take up most of the score and conceal low scores on rare diseases. In the case of a healthcare application, it would be more appropriate to have equal weights since missing a disease that is rare and severe is more severe than misclassifying a common cold.
+I chose macro-averaging over micro-averaging so that all disease classes are weighted equally. Under micro-averaging, the more common diseases carry most of the weight and can mask sub-optimal performance on infrequent ones. In a healthcare setting, equal weighting is more suitable, as missing a rare but serious disease is worse than misdiagnosing a common cold.
 
-I also created confusion matrices of the most performing classifier to understand which diseases are confused with each other.
+I also created confusion matrices for the best-performing classifier to find out which diseases are misclassified as each other most frequently.

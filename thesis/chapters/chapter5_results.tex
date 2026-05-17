@@ -1,7 +1,7 @@
 \chapter{Experimental Results}
 \label{ch:results}
 
-The results of the five classifiers regarding the two datasets are presented in this chapter. I provide the general measurements followed by the analysis of error patterns using confusion matrices and later the analysis of the most important symptoms that were used to make the predictions.
+The results obtained from the five classifiers are given in this chapter for both data sets. This is followed by reporting the headline metrics and then a pattern analysis of errors made based on confusion matrices. Finally, the most important symptoms used by the predictions are examined.
 
 \section{Results on Dataset~1}
 \label{sec:results_dataset1}
@@ -25,9 +25,9 @@ XGBoost              & 95.08 & 92.28 & 93.90 & 92.52 \\
 \end{tabular}
 \end{table}
 
-Logistic Regression and SVM scored 100\% on Dataset~1, and both methods have 100\% accuracy on all measures. This is probably due to the relatively modest size of this dataset (304 unique records after deduplication) and the fact that in this curated dataset, the separation between disease classes is clean. Naive Bayes and the Random Forest were also performing well with 98.36 percentage accuracy. Amazingly, XGBoost was the weakest at 95.08 percent, which might have been as a result of overfitting on the small training set despite regularization.
+Logistic Regression and SVM had a 100\% on all metrics on Dataset~1. This is most likely because of the small size of this data set (304 unique records after deduplication) and the fact that in this curated dataset, separation between disease classes is clean. Naive Bayes and Random Forest were also effective at 98.36\% accuracy. A surprising result is that the weakest result was obtained by XGBoost, which even with regularization got only 95.08\%, perhaps due to some mild overfitting on the small training set.
 
-The optimum scores of the Logistic Regression and SVM are to be taken with a grain of salt, they might not be applicable to the actual clinical data that is noisier in the real world. Dataset 2 is more realistic, as it consists of a larger scale and more classes of diseases.
+Note that the perfect scores obtained by Logistic Regression and SVM should be taken with a pinch of salt, as they might not be applicable to real-world clinical data which is noisy. Dataset~2 is more realistic, with a larger number of samples and a larger number of disease classes.
 
 \section{Results on Dataset~2}
 \label{sec:results_dataset2}
@@ -51,12 +51,12 @@ XGBoost              & 79.84 & 56.64 & 54.07 & 54.63 \\
 \end{tabular}
 \end{table}
 
-The results on Dataset~2 give a vastly different picture of Dataset 1. All the classifiers had a decline in performance with 727 disease classes and 151,680 training samples. Naive Bayes has still performed well with 84.11 percent accuracy and 75.97 percent macro F1, which is higher than more complex models. The accuracy of Logistic Regression was 81.82\% and the precision was lower (64.50\%), which means that the model over-plays the minority classes. XGBoost reached 79.84\% accuracy. Unbelievably, Random Forest had the lowest accuracy of 46.69 percent, probably due to the default tree depth of 10 which is not enough to differentiate 727 classes. Computational feasibility Computational feasibility To compute SVM on this scale, an SGD-based linear classifier was approximated. The general decrease in performance between Dataset~1 and Dataset~2 is unsurprising since the larger dataset contains significantly more classes and has a higher level of symptom overlap.
+The results on Dataset~2 are quite different from Dataset~1. This dataset contains 727 disease classes and approximately 151{,}680 training samples, and all classifiers showed a drop in performance. Naive Bayes maintained its high performance with an accuracy of 84.11\% and a macro-F1 of 75.97\% --- better than the more complex models. Logistic Regression achieved an accuracy of 81.82\%, with a lower level of precision (64.50\%). XGBoost reached 79.84\% accuracy. Random Forest achieved the lowest accuracy of 46.69\%, due to the trees being set to depth 10, which may not be enough to classify 727 classes. Since the scale of the computation is large, SVM was approximated by a linear classifier based on Stochastic Gradient Descent. The overall decline in performance between Dataset~1 and Dataset~2 is not surprising, as the latter contains many more classes with a significant amount of overlap in their symptoms.
 
 \section{Error Analysis}
 \label{sec:error_analysis}
 
-To interpret the instances of the classifiers where they fail, I created confusion matrices of XGBoost (the highest performing classifier) between the two datasets. Figure~\ref{fig:confusion_matrix} presents the normalized confusion matrix of Dataset 1.
+I created a confusion matrix for XGBoost (the best tree-based model overall) on Dataset~1 to see how the classifier handles this data. The normalized confusion matrix is given in Figure~\ref{fig:confusion_matrix}, wherein cells along the diagonal are marked with the per-class accuracy.
 
 \begin{figure}[H]
 \centering
@@ -65,14 +65,14 @@ To interpret the instances of the classifiers where they fail, I created confusi
 \label{fig:confusion_matrix}
 \end{figure}
 
-The confusion matrix showed that majority of errors occur between diseases with similar symptoms. To illustrate this, the similar respiratory disorders such as bronchitis and pneumonia were often mixed up since they have the same symptoms such as cough, fever, and chest pain. On the same note, various forms of skin conditions were confused when they exhibited a similar rash.
+The confusion matrix reveals that the majority of the errors are between diseases with similar symptoms. For instance, related respiratory diseases such as bronchitis and pneumonia were sometimes difficult to distinguish because of similar symptoms like cough, fever, and chest pain. Likewise, various types of skin problems were mixed up when they presented with a similar rash.
 
-Interestingly, there are pairs of confusion that also make sense clinically - the diseases may need the same specialist anyway. Misdiagnosis between two dermatological conditions would still result in a patient making a booking with a dermatologist, and therefore, the mistake will not negatively affect the healthcare booking use case.
+Interestingly, some of these confusion pairs are also clinically appropriate, as the diseases commonly have to be managed by the same specialist. A misclassification between two dermatological conditions would still direct the patient to a dermatologist, so the error would not affect the healthcare booking use case.
 
 \section{Feature Importance Analysis}
 \label{sec:feature_importance}
 
-Both the Random Forest and XGBoost give scores of feature importance, which are derived by the importance of each feature to the decisions made by the model. Figure~\ref{fig:feature_importance} denotes the 15 most significant symptoms to XGBoost on Dataset 1 in Figure 1.
+Random Forest and XGBoost can be used to calculate feature importances based on the contribution of each feature to the decision-making process. The top 15 most informative symptoms identified by XGBoost on Dataset~1 are shown in Figure~\ref{fig:feature_importance}.
 
 \begin{figure}[H]
 \centering
@@ -81,6 +81,6 @@ Both the Random Forest and XGBoost give scores of feature importance, which are 
 \label{fig:feature_importance}
 \end{figure}
 
-The feature importance analysis showed that some symptoms are far more informative than others. Symptoms such as ``skin\_rash'', ``chest\_pain'', and ``yellowish\_skin'' were also highly rated as they are disease specific. Conversely, extremely broad symptoms such as the fatigue and the headache were lower since they are common in a wide range of diseases and do not assist in the diagnosis.
+The feature importance analysis revealed that certain symptoms provide more information than others. Disease-specific symptoms like ``skin\_rash'', ``chest\_pain'', and ``yellowish\_skin'' were high-ranking. Very general symptoms like fatigue and headache were not so important, as they are found in many diseases and give little discriminating signal.
 
-It may indicate that a reduced symptom questionnaire with only 15 or 20 symptoms may have similar performance and be a lot easier to complete by patients. I do address this possibility in Chapter~\ref{ch:conclusion}.
+This indicates that a short symptom questionnaire, consisting of only 15 or 20 carefully selected symptoms, could do as well and be much simpler for patients to complete. A discussion of this possibility is continued in Chapter~\ref{ch:conclusion}.
