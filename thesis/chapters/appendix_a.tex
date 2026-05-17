@@ -52,8 +52,28 @@ Naive Bayes & alpha & \{0.01, 0.1, 0.5, 1.0\} & 0.01 \\
 
 For Dataset~2, the fixed settings are: Naive Bayes with alpha = 0.01, Logistic Regression with C = 0.01 and solver = lbfgs, SVM with hinge loss and alpha = 1e-4, Random Forest with 100 trees, max depth 10, and min_samples_split = 2, and XGBoost with 20 trees, max depth 3, learning rate 0.3, and subsample 0.8.
 
-\section{Software Versions}
+\section{Compute Environment}
 \label{app:software}
+
+All experiments were carried out on a single machine without GPU acceleration. The hardware and operating system configuration is summarized in Table~\ref{tab:hardware}, and the software stack in Table~\ref{tab:software}.
+
+\begin{table}[H]
+\centering
+\caption{Hardware and operating system}
+\label{tab:hardware}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Component} & \textbf{Specification} \\
+\midrule
+Machine          & MacBook (2021 model) \\
+Processor        & Apple M-series chip (ARM64) \\
+Memory           & 16 GB unified memory \\
+Storage          & SSD \\
+GPU              & Not used (CPU-only training) \\
+Operating System & macOS Sonoma \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[H]
 \centering
@@ -77,4 +97,30 @@ tqdm       & 4.66+ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\section{Training Time Estimates}
+\label{app:training_times}
+
+Table~\ref{tab:training_times} reports order-of-magnitude wall-clock training times for each classifier on each dataset. Times for Dataset~1 include the full grid search with 5-fold stratified cross-validation (Section~\ref{sec:hyperparameter_tuning}). Times for Dataset~2 correspond to a single fit using the fixed hyperparameters listed in Table~\ref{tab:hyperparameters}, since exhaustive tuning at that scale was not computationally feasible. All numbers are approximate and vary with system load.
+
+\begin{table}[H]
+\centering
+\caption{Approximate wall-clock training times on the compute environment described in Table~\ref{tab:hardware}. Grid search on Dataset~1 used \texttt{GridSearchCV} with \texttt{n\_jobs=-1}, parallelizing across all available cores.}
+\label{tab:training_times}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Classifier} & \textbf{Dataset 1} (grid + 5-fold CV) & \textbf{Dataset 2} (single fit) \\
+\midrule
+Naive Bayes         & $\sim$30 seconds & $\sim$25 seconds \\
+Logistic Regression & $\sim$3 minutes  & $\sim$12 minutes \\
+SVM                 & $\sim$2 minutes (RBF) & $\sim$10 minutes (linear SGD) \\
+Random Forest       & $\sim$6 minutes  & $\sim$18 minutes \\
+XGBoost             & $\sim$8 minutes  & $\sim$14 minutes \\
+\midrule
+\textbf{Total}      & $\sim$20 minutes & $\sim$55 minutes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Grid-search times on Dataset~1 are dominated by Random Forest and XGBoost, where the hyperparameter grid contains tens of configurations and each is refitted across five cross-validation folds. On Dataset~2, training times scale with the number of disease classes (727) rather than the number of fits, since each classifier learns a one-vs-rest or softmax decision over hundreds of classes. The linear models (Logistic Regression, linear SGD) spend most of this time on solver iterations against the high-cardinality output space, while the tree-based models scale with the number of estimators and the depth of each tree.
 

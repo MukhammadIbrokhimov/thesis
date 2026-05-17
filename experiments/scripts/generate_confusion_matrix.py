@@ -45,38 +45,53 @@ def main():
     # Get class names
     class_names = label_encoder.classes_
 
-    # Create figure
-    fig, ax = plt.subplots(figsize=(14, 12))
+    # Create figure - larger canvas for readability with 41 classes
+    fig, ax = plt.subplots(figsize=(18, 16))
 
-    # Plot heatmap
+    # Plot heatmap with thin gridlines to separate cells
     sns.heatmap(
         cm,
-        annot=False,  # Too many classes for annotations
+        annot=False,  # Too many cells for full annotation
         fmt=".2f",
         cmap="Blues",
         xticklabels=class_names,
         yticklabels=class_names,
         ax=ax,
-        cbar_kws={"label": "Proportion"},
+        cbar_kws={"label": "Proportion", "shrink": 0.7},
+        linewidths=0.3,
+        linecolor="lightgray",
+        square=True,
     )
 
-    ax.set_xlabel("Predicted Disease", fontsize=12)
-    ax.set_ylabel("True Disease", fontsize=12)
-    ax.set_title("Normalized Confusion Matrix - XGBoost on Dataset 1", fontsize=14)
+    # Annotate diagonal (correct-classification rate per class) only
+    for i in range(len(class_names)):
+        ax.text(
+            i + 0.5, i + 0.5,
+            f"{cm[i, i]:.2f}",
+            ha="center", va="center",
+            fontsize=7,
+            color="white" if cm[i, i] > 0.5 else "black",
+        )
 
-    # Rotate labels for readability
-    plt.xticks(rotation=90, ha="center", fontsize=6)
-    plt.yticks(rotation=0, fontsize=6)
+    ax.set_xlabel("Predicted Disease", fontsize=14, fontweight="bold")
+    ax.set_ylabel("True Disease", fontsize=14, fontweight="bold")
+    ax.set_title(
+        "Normalized Confusion Matrix - XGBoost on Dataset 1",
+        fontsize=16, pad=12,
+    )
+
+    # Larger tick labels for readability
+    plt.xticks(rotation=45, ha="right", fontsize=10)
+    plt.yticks(rotation=0, fontsize=10)
 
     plt.tight_layout()
 
-    # Save
+    # Save high-resolution PDF (vector) and PNG (preview)
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     output_path = FIGURES_DIR / "confusion_matrix.pdf"
     plt.savefig(output_path, dpi=300, bbox_inches="tight")
     print(f"Saved to {output_path}")
 
-    # Also save PNG for quick preview
     plt.savefig(FIGURES_DIR / "confusion_matrix.png", dpi=150, bbox_inches="tight")
 
     plt.close()
