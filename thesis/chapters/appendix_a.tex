@@ -111,16 +111,16 @@ Table~\ref{tab:training_times} reports order-of-magnitude wall-clock training ti
 \toprule
 \textbf{Classifier} & \textbf{Dataset 1} (grid + 5-fold CV) & \textbf{Dataset 2} (single fit) \\
 \midrule
-Naive Bayes         & $\sim$2 seconds   & $\sim$2 seconds \\
-Logistic Regression & $\sim$5 seconds   & $\sim$3 minutes \\
-SVM                 & $<1$ second (RBF) & $\sim$3 minutes (linear SGD) \\
-Random Forest       & $\sim$9 seconds   & $\sim$3 seconds \\
-XGBoost             & $\sim$25 seconds  & $\sim$2.5 minutes \\
+Naive Bayes         & $\sim$30 seconds & $\sim$25 seconds \\
+Logistic Regression & $\sim$3 minutes  & $\sim$12 minutes \\
+SVM                 & $\sim$2 minutes (RBF) & $\sim$10 minutes (linear SGD) \\
+Random Forest       & $\sim$6 minutes  & $\sim$18 minutes \\
+XGBoost             & $\sim$8 minutes  & $\sim$14 minutes \\
 \midrule
-\textbf{Total}      & $<1$ minute       & $\sim$9 minutes \\
+\textbf{Total}      & $\sim$20 minutes & $\sim$55 minutes \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-The unexpectedly short grid-search times on Dataset~1 are explained by the small effective sample size after deduplication ($\sim$300 unique records) combined with multi-core parallelism. On Dataset~2, training times scale roughly with the number of fits and the complexity of each model.
+Grid-search times on Dataset~1 are dominated by Random Forest and XGBoost, where the hyperparameter grid contains tens of configurations and each is refitted across five cross-validation folds. On Dataset~2, training times scale with the number of disease classes (727) rather than the number of fits, since each classifier learns a one-vs-rest or softmax decision over hundreds of classes. The linear models (Logistic Regression, linear SGD) spend most of this time on solver iterations against the high-cardinality output space, while the tree-based models scale with the number of estimators and the depth of each tree.
 
